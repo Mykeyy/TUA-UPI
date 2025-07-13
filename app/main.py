@@ -5,8 +5,14 @@ from fastapi.openapi.utils import get_openapi
 from contextlib import asynccontextmanager
 import uvicorn
 import structlog
+import logging
 
-from app.config import settings
+# Import logging configuration early
+from logging_config import LOGGING_CONFIG
+import logging.config
+logging.config.dictConfig(LOGGING_CONFIG)
+
+from app.config import settings, configure_logging
 from app.database import create_tables
 from app.routers import auth, audio, stats, health, docs
 from app.middleware.logging import LoggingMiddleware
@@ -16,7 +22,13 @@ from app.middleware.rate_limit import RateLimitMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
-    # Startup
+    # Configure logging first to suppress noisy logs
+    configure_logging()
+    
+    print()
+    print("🔧 Initializing application...")
+    
+    # Startup - Configure structlog
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
@@ -35,15 +47,24 @@ async def lifespan(app: FastAPI):
     )
     
     # Create database tables
+    print("📊 Setting up database...")
     await create_tables()
+    print("✅ Database ready")
     
     logger = structlog.get_logger()
     logger.info("Application startup complete", version=settings.API_VERSION)
     
+    print("🚀 Application startup complete!")
+    print("=" * 60)
+    print()
+    
     yield
     
     # Shutdown
+    print()
+    print("🔄 Application shutdown...")
     logger.info("Application shutdown complete")
+    print("✅ Cleanup complete")
 
 
 def custom_openapi():

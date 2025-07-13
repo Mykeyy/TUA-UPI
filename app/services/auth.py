@@ -243,7 +243,7 @@ class AuthService:
             message="API key generated successfully"
         )
     
-    async def get_api_key_info(self, user_id: int) -> APIKeyInfo:
+    async def get_api_key_info(self, user_id: int) -> Optional[APIKeyInfo]:
         """Get API key information without exposing the full key"""
         result = await self.db.execute(
             select(User).where(User.id == user_id)
@@ -251,7 +251,7 @@ class AuthService:
         user = result.scalar_one_or_none()
         
         if not user or not user.api_key:  # type: ignore
-            raise ValueError("No API key found")
+            return None
         
         return APIKeyInfo(
             name=user.api_key_name,  # type: ignore
@@ -499,5 +499,8 @@ class AuthService:
             
             admin_user = await self.create_user(admin_data)
             logger.info("Admin user created", user_id=admin_user.id)
+            print(f"   ✅ Created admin user: {admin_user.username}")
+        else:
+            print(f"   ✅ Admin user exists: {admin_user.username}")
         
         return admin_user

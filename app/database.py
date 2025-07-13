@@ -1,6 +1,7 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy import MetaData
+from typing import AsyncGenerator
 import structlog
 
 from app.config import settings
@@ -17,7 +18,7 @@ else:
 
 engine = create_async_engine(
     database_url,
-    echo=settings.DEBUG,
+    echo=False,  # Disable SQL echo to reduce verbosity
     future=True
 )
 
@@ -42,7 +43,7 @@ class Base(DeclarativeBase):
     )
 
 
-async def get_async_session() -> AsyncSession:
+async def get_async_session() -> AsyncGenerator[AsyncSession, None]:
     """Dependency to get database session"""
     async with async_session_factory() as session:
         try:

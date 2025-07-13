@@ -250,14 +250,14 @@
         </form>
 
         <div class="text-center" style="margin-bottom: 1rem;">
-            <a href="forgot-password.html" class="link">Forgot your password?</a>
+            <a href="/docs/auth/forgot-password" class="link">Forgot your password?</a>
         </div>
 
         <div class="divider">
             <span>Don't have an account?</span>
         </div>
 
-        <a href="signup.html" class="btn btn-secondary text-center" style="display: block; text-decoration: none;">Create Account</a>
+        <a href="/docs/auth/signup" class="btn btn-secondary text-center" style="display: block; text-decoration: none;">Create Account</a>
 
         <div class="text-center" style="margin-top: 1rem;">
             <a href="/docs" class="link">← Back to Documentation</a>
@@ -284,7 +284,7 @@
             try {
                 const formData = new FormData(e.target);
                 const credentials = {
-                    username: formData.get('username'),
+                    username_or_email: formData.get('username'),
                     password: formData.get('password')
                 };
                 
@@ -312,7 +312,7 @@
                     
                     // Redirect to dashboard
                     setTimeout(() => {
-                        window.location.href = 'dashboard.html';
+                        window.location.href = '/docs/auth/dashboard';
                     }, 1500);
                 } else {
                     throw new Error(data.detail || 'Login failed');
@@ -334,7 +334,7 @@
         
         // Check if user is already logged in
         if (localStorage.getItem('access_token')) {
-            window.location.href = 'dashboard.html';
+            window.location.href = '/docs/auth/dashboard';
         }
     </script>
 </body>

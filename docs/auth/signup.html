@@ -332,7 +332,7 @@
             <span>Already have an account?</span>
         </div>
 
-        <a href="login.html" class="btn btn-secondary text-center" style="display: block; text-decoration: none;">Sign In</a>
+        <a href="/docs/auth/login" class="btn btn-secondary text-center" style="display: block; text-decoration: none;">Sign In</a>
 
         <div class="text-center" style="margin-top: 1rem;">
             <a href="/docs" class="link">← Back to Documentation</a>
@@ -444,7 +444,7 @@
                     
                     // Redirect to login after a delay
                     setTimeout(() => {
-                        window.location.href = 'login.html';
+                        window.location.href = '/docs/auth/login';
                     }, 3000);
                 } else {
                     throw new Error(data.detail || 'Registration failed');
@@ -466,7 +466,7 @@
         
         // Check if user is already logged in
         if (localStorage.getItem('access_token')) {
-            window.location.href = 'dashboard.html';
+            window.location.href = '/docs/auth/dashboard';
         }
     </script>
 </body>

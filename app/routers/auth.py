@@ -132,7 +132,7 @@ async def generate_api_key(
         )
 
 
-@router.get("/api-key", response_model=APIKeyInfo)
+@router.get("/api-key", response_model=Optional[APIKeyInfo])
 async def get_api_key_info(
     current_user: UserResponse = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_session)
@@ -141,13 +141,13 @@ async def get_api_key_info(
     try:
         auth_service = AuthService(db)
         api_key_info = await auth_service.get_api_key_info(current_user.id)
-        return api_key_info
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
+        return api_key_info  # Will be None if no key exists
     except Exception as e:
+        logger.error("Error getting API key info", user_id=current_user.id, error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get API key information"
+        )
         logger.error("Error getting API key info", user_id=current_user.id, error=str(e))
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

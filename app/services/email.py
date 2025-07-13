@@ -120,17 +120,25 @@ class EmailService:
     """Email service for handling verification and password reset emails"""
     
     def __init__(self):
-        self.fastmail = FastMail(conf)
+        # Check if email is configured
+        self.email_configured = bool(settings.MAIL_USERNAME and settings.MAIL_PASSWORD)
+        
+        if self.email_configured:
+            self.fastmail = FastMail(conf)
+        else:
+            self.fastmail = None
+            logger.warning("Email service not configured - email features disabled")
+            
         self.serializer = URLSafeTimedSerializer(settings.EMAIL_VERIFICATION_SECRET)
         self.jinja_env = Environment(loader=BaseLoader())
     
     def generate_verification_token(self, email: str) -> str:
         """Generate email verification token"""
-        return self.serializer.dumps(email, salt='email-verify')
+        return str(self.serializer.dumps(email, salt='email-verify'))
     
     def generate_password_reset_token(self, email: str) -> str:
         """Generate password reset token"""
-        return self.serializer.dumps(email, salt='password-reset')
+        return str(self.serializer.dumps(email, salt='password-reset'))
     
     def verify_verification_token(self, token: str, max_age: int = 86400) -> str:
         """Verify email verification token and return email"""
@@ -158,6 +166,10 @@ class EmailService:
     
     async def send_verification_email(self, email: EmailStr, username: str, token: str):
         """Send email verification email"""
+        if not self.email_configured:
+            logger.warning("Email not configured - skipping verification email", email=email)
+            return
+            
         try:
             verification_url = f"{settings.FRONTEND_URL}/verify-email?token={token}"
             
@@ -174,7 +186,7 @@ class EmailService:
                 subtype=MessageType.html
             )
             
-            await self.fastmail.send_message(message)
+            await self.fastmail.send_message(message)  # type: ignore
             logger.info("Verification email sent", email=email, username=username)
             
         except Exception as e:
@@ -183,6 +195,10 @@ class EmailService:
     
     async def send_password_reset_email(self, email: EmailStr, username: str, token: str):
         """Send password reset email"""
+        if not self.email_configured:
+            logger.warning("Email not configured - skipping password reset email", email=email)
+            return
+            
         try:
             reset_url = f"{settings.FRONTEND_URL}/reset-password?token={token}"
             
@@ -199,7 +215,7 @@ class EmailService:
                 subtype=MessageType.html
             )
             
-            await self.fastmail.send_message(message)
+            await self.fastmail.send_message(message)  # type: ignore
             logger.info("Password reset email sent", email=email, username=username)
             
         except Exception as e:
@@ -208,6 +224,10 @@ class EmailService:
     
     async def send_welcome_email(self, email: EmailStr, username: str):
         """Send welcome email after successful verification"""
+        if not self.email_configured:
+            logger.warning("Email not configured - skipping welcome email", email=email)
+            return
+            
         try:
             welcome_template = """
             <!DOCTYPE html>
@@ -283,7 +303,7 @@ class EmailService:
                 subtype=MessageType.html
             )
             
-            await self.fastmail.send_message(message)
+            await self.fastmail.send_message(message)  # type: ignore
             logger.info("Welcome email sent", email=email, username=username)
             
         except Exception as e:

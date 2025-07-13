@@ -75,3 +75,17 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def configure_logging():
+    """Configure logging to reduce verbosity"""
+    import logging
+    
+    # Suppress noisy loggers
+    logging.getLogger("sqlalchemy.engine").setLevel(logging.ERROR)
+    logging.getLogger("sqlalchemy.pool").setLevel(logging.ERROR)
+    logging.getLogger("sqlalchemy").setLevel(logging.ERROR)
+    logging.getLogger("uvicorn.access").setLevel(logging.ERROR)
+    
+    # Set root logger to WARNING to reduce noise
+    logging.getLogger().setLevel(logging.WARNING)
