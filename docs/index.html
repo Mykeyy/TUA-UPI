@@ -580,6 +580,14 @@
         <div class="logo-text">The Ultimate API</div>
       </div>
       <div class="header-controls">
+        <a href="/docs/auth/login" class="badge badge-primary">
+          <i class="material-icons">login</i>
+          Login
+        </a>
+        <a href="/docs/bot" class="badge badge-secondary">
+          <i class="material-icons">api</i>
+          API Integration
+        </a>
         <a href="/docs/tos.html" class="badge badge-secondary">
           <i class="material-icons">gavel</i>
           Terms of Service
@@ -645,6 +653,58 @@
           </div>
           <div class="feature-title">Secure</div>
           <div class="feature-desc">Industry-standard security practices</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Authentication Section -->
+  <section style="background: rgba(42, 42, 42, 0.95); padding: 4rem 2rem; margin: 2rem 0; border-radius: 16px; border: 2px solid var(--primary-color);">
+    <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-color);">
+        Get Started Today
+      </h2>
+      <p style="font-size: 1.25rem; color: var(--text-secondary); margin-bottom: 3rem; max-width: 600px; margin-left: auto; margin-right: auto;">
+        Choose how you want to access The Ultimate API. Web dashboard for managing your account or integrate with your own Discord bot applications.
+      </p>
+      
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+        <!-- Web Access Card -->
+        <div style="background: #1f1f1f; padding: 2rem; border-radius: 12px; border: 1px solid #444; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--primary-color)'" onmouseout="this.style.borderColor='#444'">
+          <div style="background: var(--primary-color); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+            <i class="material-icons" style="font-size: 28px; color: white;">web</i>
+          </div>
+          <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-color);">Web Dashboard</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+            Create an account, manage API keys, track usage statistics, and access all features through our modern web interface.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/docs/auth/login" style="background: var(--primary-color); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+              Login
+            </a>
+            <a href="/docs/auth/signup" style="background: transparent; color: var(--primary-color); padding: 12px 24px; border: 2px solid var(--primary-color); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='var(--primary-color)'; this.style.color='white'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--primary-color)'">
+              Sign Up
+            </a>
+          </div>
+        </div>
+        
+        <!-- API Integration Card -->
+        <div style="background: #1f1f1f; padding: 2rem; border-radius: 12px; border: 1px solid #444; transition: all 0.3s ease;" onmouseover="this.style.borderColor='var(--primary-color)'" onmouseout="this.style.borderColor='#444'">
+          <div style="background: #5865F2; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+            <i class="material-icons" style="font-size: 28px; color: white;">api</i>
+          </div>
+          <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-color);">API Integration</h3>
+          <p style="color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.6;">
+            Integrate The Ultimate API with your own Discord bots or applications. Get client credentials and start downloading audio programmatically.
+          </p>
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="/docs/bot" style="background: #5865F2; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+              View Integration Guide
+            </a>
+            <a href="/docs/auth/login" style="background: transparent; color: #5865F2; padding: 12px 24px; border: 2px solid #5865F2; border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s ease;" onmouseover="this.style.backgroundColor='#5865F2'; this.style.color='white'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#5865F2'">
+              Get API Keys
+            </a>
+          </div>
         </div>
       </div>
     </div>

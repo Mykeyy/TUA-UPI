@@ -5,407 +5,59 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - The Ultimate API</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%);
-            color: #ffffff;
-            min-height: 100vh;
-        }
-
-        .header {
-            background: rgba(42, 42, 42, 0.95);
-            border-bottom: 2px solid #3ac062;
-            padding: 1rem 2rem;
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: #3ac062;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .logo-text {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #ffffff;
-        }
-
-        .user-menu {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .user-avatar {
-            width: 32px;
-            height: 32px;
-            background: #3ac062;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            background: #3ac062;
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-size: 0.875rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-
-        .btn:hover {
-            background: #4bd170;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: transparent;
-            border: 1px solid #666;
-            color: #ffffff;
-        }
-
-        .btn-secondary:hover {
-            border-color: #3ac062;
-            color: #3ac062;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: rgba(42, 42, 42, 0.95);
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem;
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #ffffff;
-            flex: 1;
-        }
-
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .stat {
-            background: #1f1f1f;
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 800;
-            color: #3ac062;
-            display: block;
-        }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #888;
-            margin-top: 0.25rem;
-        }
-
-        .api-key-item {
-            background: #1f1f1f;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .api-key-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .api-key-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .api-key-name {
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .api-key-status {
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .status-active {
-            background: rgba(58, 192, 98, 0.2);
-            color: #3ac062;
-        }
-
-        .status-inactive {
-            background: rgba(220, 53, 69, 0.2);
-            color: #dc3545;
-        }
-
-        .api-key-value {
-            font-family: 'Courier New', monospace;
-            background: #111;
-            padding: 0.5rem;
-            border-radius: 4px;
-            margin: 0.5rem 0;
-            word-break: break-all;
-            font-size: 0.875rem;
-            color: #ccc;
-        }
-
-        .api-key-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #888;
-        }
-
-        .api-key-actions {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .form-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 8px 12px;
-            background: #1f1f1f;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #ffffff;
-            font-size: 0.875rem;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: #3ac062;
-        }
-
-        .alert {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            font-weight: 500;
-        }
-
-        .alert-error {
-            background: rgba(220, 53, 69, 0.1);
-            border: 1px solid #dc3545;
-            color: #dc3545;
-        }
-
-        .alert-success {
-            background: rgba(58, 192, 98, 0.1);
-            border: 1px solid #3ac062;
-            color: #3ac062;
-        }
-
-        .loading {
-            display: none;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-
-        .spinner {
-            width: 16px;
-            height: 16px;
-            border: 2px solid #ffffff;
-            border-top: 2px solid #3ac062;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .progress-bar {
-            background: #333;
-            border-radius: 4px;
-            overflow: hidden;
-            height: 8px;
-            margin: 0.5rem 0;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #3ac062, #4bd170);
-            height: 100%;
-            transition: width 0.3s ease;
-        }
-
-        .premium-badge {
-            background: linear-gradient(90deg, #ffd700, #ffed4e);
-            color: #000;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        .client-credentials {
-            background: #1f1f1f;
-            border: 1px solid #333;
-            border-radius: 8px;
-            padding: 1rem;
-            margin-top: 1rem;
-        }
-
-        .credential-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
-        .credential-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .credential-label {
-            font-weight: 600;
-            color: #888;
-        }
-
-        .credential-value {
-            font-family: 'Courier New', monospace;
-            color: #fff;
-            font-size: 0.875rem;
-        }
-
-        .copy-btn {
-            background: transparent;
-            border: 1px solid #666;
-            color: #888;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            margin-left: 0.5rem;
-        }
-
-        .copy-btn:hover {
-            border-color: #3ac062;
-            color: #3ac062;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 1rem;
-            }
-            
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            
-            .stat-grid {
-                grid-template-columns: 1fr;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #1f1f1f 0%, #2a2a2a 100%); color: #ffffff; min-height: 100vh; }
+        .header { background: rgba(42, 42, 42, 0.95); border-bottom: 2px solid #3ac062; padding: 1rem 2rem; backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 40px; height: 40px; background: #3ac062; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo-text { font-size: 1.25rem; font-weight: 800; color: #ffffff; }
+        .user-menu { display: flex; align-items: center; gap: 1rem; }
+        .user-info { display: flex; align-items: center; gap: 0.5rem; }
+        .user-avatar { width: 32px; height: 32px; background: #3ac062; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; }
+        .btn { padding: 8px 16px; background: #3ac062; border: none; border-radius: 6px; color: white; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
+        .btn:hover { background: #4bd170; transform: translateY(-1px); }
+        .btn-secondary { background: transparent; border: 1px solid #666; color: #ffffff; }
+        .btn-secondary:hover { border-color: #3ac062; color: #3ac062; }
+        .btn-danger { background: #dc3545; }
+        .btn-danger:hover { background: #c82333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
+        .card { background: rgba(42, 42, 42, 0.95); border: 1px solid #444; border-radius: 12px; padding: 1.5rem; backdrop-filter: blur(10px); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; gap: 1rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: #ffffff; flex: 1; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+        .stat { background: #1f1f1f; padding: 1rem; border-radius: 8px; text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: 800; color: #3ac062; display: block; }
+        .stat-label { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+        .api-key-item { background: #1f1f1f; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; }
+        .api-key-item:last-child { margin-bottom: 0; }
+        .api-key-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .api-key-name { font-weight: 600; color: #ffffff; }
+        .api-key-status { padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .status-active { background: rgba(58, 192, 98, 0.2); color: #3ac062; }
+        .api-key-value { font-family: 'Courier New', monospace; background: #111; padding: 0.5rem; border-radius: 4px; margin: 0.5rem 0; word-break: break-all; font-size: 0.875rem; color: #ccc; }
+        .api-key-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+        .form-group { margin-bottom: 1rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; color: #ffffff; }
+        .form-input { width: 100%; padding: 8px 12px; background: #1f1f1f; border: 1px solid #444; border-radius: 6px; color: #ffffff; font-size: 0.875rem; }
+        .form-input:focus { outline: none; border-color: #3ac062; }
+        .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-weight: 500; }
+        .alert-error { background: rgba(220, 53, 69, 0.1); border: 1px solid #dc3545; color: #dc3545; }
+        .alert-success { background: rgba(58, 192, 98, 0.1); border: 1px solid #3ac062; color: #3ac062; }
+        .loading { display: none; align-items: center; justify-content: center; gap: 0.5rem; }
+        .spinner { width: 16px; height: 16px; border: 2px solid #ffffff; border-top: 2px solid #3ac062; border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden { display: none; }
+        .progress-bar { background: #333; border-radius: 4px; overflow: hidden; height: 8px; margin: 0.5rem 0; }
+        .progress-fill { background: linear-gradient(90deg, #3ac062, #4bd170); height: 100%; transition: width 0.3s ease; }
+        .client-credentials { background: #1f1f1f; border: 1px solid #333; border-radius: 8px; padding: 1rem; margin-top: 1rem; }
+        .credential-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        .credential-item:last-child { margin-bottom: 0; }
+        .credential-label { font-weight: 600; color: #888; }
+        .credential-value { font-family: 'Courier New', monospace; color: #fff; font-size: 0.875rem; }
+        .copy-btn { background: transparent; border: 1px solid #666; color: #888; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.75rem; margin-left: 0.5rem; }
+        .copy-btn:hover { border-color: #3ac062; color: #3ac062; }
     </style>
 </head>
 <body>
@@ -415,12 +67,10 @@
                 <div class="logo-icon">💀</div>
                 <div class="logo-text">The Ultimate API</div>
             </div>
-            
             <div class="user-menu">
                 <div class="user-info">
                     <div class="user-avatar" id="userAvatar"></div>
                     <span id="userName">Loading...</span>
-                    <span id="premiumBadge" class="premium-badge hidden">PREMIUM</span>
                 </div>
                 <button class="btn btn-secondary" onclick="logout()">Logout</button>
             </div>
@@ -436,7 +86,6 @@
                 <div class="card-header">
                     <h2 class="card-title">Usage Statistics</h2>
                 </div>
-                
                 <div class="stat-grid">
                     <div class="stat">
                         <span class="stat-value" id="dailyDownloads">0</span>
@@ -446,12 +95,7 @@
                         <span class="stat-value" id="totalDownloads">0</span>
                         <div class="stat-label">Total Downloads</div>
                     </div>
-                    <div class="stat">
-                        <span class="stat-value" id="dailyLimit">1000</span>
-                        <div class="stat-label">Daily Limit</div>
-                    </div>
                 </div>
-
                 <div>
                     <strong>Daily Usage</strong>
                     <div class="progress-bar">
@@ -466,22 +110,18 @@
                 <div class="card-header">
                     <h2 class="card-title">Account Information</h2>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Username</label>
                     <input type="text" class="form-input" id="accountUsername" readonly>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Email</label>
                     <input type="email" class="form-input" id="accountEmail" readonly>
                 </div>
-                
                 <div class="form-group">
                     <label class="form-label">Display Name</label>
                     <input type="text" class="form-input" id="accountDisplayName">
                 </div>
-                
                 <button class="btn" onclick="updateProfile()">Update Profile</button>
             </div>
         </div>
@@ -490,24 +130,8 @@
         <div class="card">
             <div class="card-header">
                 <h2 class="card-title">API Keys</h2>
-                <button class="btn" onclick="showCreateKeyForm()">Create New Key</button>
+                <button class="btn" onclick="createApiKey()">Create New Key</button>
             </div>
-
-            <div id="createKeyForm" class="hidden" style="margin-bottom: 1rem; padding: 1rem; background: #1f1f1f; border-radius: 8px;">
-                <div class="form-group">
-                    <label class="form-label">Key Name</label>
-                    <input type="text" class="form-input" id="newKeyName" placeholder="e.g., Discord Bot, Web App">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Description (Optional)</label>
-                    <input type="text" class="form-input" id="newKeyDescription" placeholder="What will this key be used for?">
-                </div>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn" onclick="createApiKey()">Create Key</button>
-                    <button class="btn btn-secondary" onclick="hideCreateKeyForm()">Cancel</button>
-                </div>
-            </div>
-
             <div id="apiKeysList">
                 <div class="loading" style="display: flex; margin: 2rem 0;">
                     <div class="spinner"></div>
@@ -522,11 +146,7 @@
                 <h2 class="card-title">Discord Bot Credentials</h2>
                 <button class="btn" onclick="regenerateClientCredentials()">Regenerate</button>
             </div>
-            
-            <p style="color: #888; margin-bottom: 1rem;">
-                Use these credentials for Discord bot authentication instead of API keys.
-            </p>
-            
+            <p style="color: #888; margin-bottom: 1rem;">Use these credentials for Discord bot authentication.</p>
             <div class="client-credentials">
                 <div class="credential-item">
                     <span class="credential-label">Client ID:</span>
@@ -549,308 +169,123 @@
     <script>
         const API_BASE = 'http://localhost:8000';
         let currentUser = null;
-
-        // Authentication check
         const token = localStorage.getItem('access_token');
-        if (!token) {
-            window.location.href = 'login.html';
-        }
+        if (!token) window.location.href = 'login.html';
 
-        // API helper
         async function apiCall(endpoint, options = {}) {
             const response = await fetch(`${API_BASE}${endpoint}`, {
                 ...options,
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                    ...options.headers
-                }
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', ...options.headers }
             });
-
-            if (response.status === 401) {
-                localStorage.removeItem('access_token');
-                window.location.href = 'login.html';
-                return;
-            }
-
+            if (response.status === 401) { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
             return response;
         }
 
-        // Load user data
         async function loadUserData() {
             try {
                 const response = await apiCall('/auth/profile');
-                if (response.ok) {
-                    currentUser = await response.json();
-                    updateUI();
-                }
-            } catch (error) {
-                showAlert('Failed to load user data', 'error');
-            }
+                if (response.ok) { currentUser = await response.json(); updateUI(); }
+            } catch (error) { showAlert('Failed to load user data', 'error'); }
         }
 
-        // Update UI with user data
         function updateUI() {
             if (!currentUser) return;
-
-            // Header
             document.getElementById('userName').textContent = currentUser.display_name || currentUser.username;
             document.getElementById('userAvatar').textContent = currentUser.username.charAt(0).toUpperCase();
-            
-            if (currentUser.is_premium) {
-                document.getElementById('premiumBadge').classList.remove('hidden');
-            }
-
-            // Account info
             document.getElementById('accountUsername').value = currentUser.username;
             document.getElementById('accountEmail').value = currentUser.email;
             document.getElementById('accountDisplayName').value = currentUser.display_name || '';
-
-            // Usage stats
             document.getElementById('dailyDownloads').textContent = currentUser.daily_downloads || 0;
             document.getElementById('totalDownloads').textContent = currentUser.total_downloads || 0;
-            document.getElementById('dailyLimit').textContent = currentUser.daily_limit || 1000;
-
             const usagePercent = ((currentUser.daily_downloads || 0) / (currentUser.daily_limit || 1000)) * 100;
             document.getElementById('usageProgress').style.width = `${Math.min(usagePercent, 100)}%`;
-            document.getElementById('usageText').textContent = 
-                `${currentUser.daily_downloads || 0} / ${currentUser.daily_limit || 1000} downloads used today`;
-
-            // Client credentials
+            document.getElementById('usageText').textContent = `${currentUser.daily_downloads || 0} / ${currentUser.daily_limit || 1000} downloads used today`;
             document.getElementById('clientId').textContent = currentUser.client_id || 'Not generated';
             document.getElementById('clientSecret').textContent = currentUser.client_secret || 'Not generated';
         }
 
-        // Load API keys
         async function loadApiKeys() {
             try {
                 const response = await apiCall('/auth/api-keys');
                 if (response.ok) {
                     const keys = await response.json();
-                    displayApiKeys(keys);
-                }
-            } catch (error) {
-                showAlert('Failed to load API keys', 'error');
-            }
-        }
-
-        // Display API keys
-        function displayApiKeys(keys) {
-            const container = document.getElementById('apiKeysList');
-            
-            if (keys.length === 0) {
-                container.innerHTML = `
-                    <div style="text-align: center; color: #888; padding: 2rem;">
-                        No API keys found. Create your first key to get started.
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = keys.map(key => `
-                <div class="api-key-item">
-                    <div class="api-key-header">
-                        <div class="api-key-name">${key.name}</div>
-                        <div class="api-key-status ${key.is_active ? 'status-active' : 'status-inactive'}">
-                            ${key.is_active ? 'Active' : 'Inactive'}
+                    const container = document.getElementById('apiKeysList');
+                    if (keys.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: #888; padding: 2rem;">No API keys found. Create your first key to get started.</div>';
+                        return;
+                    }
+                    container.innerHTML = keys.map(key => `
+                        <div class="api-key-item">
+                            <div class="api-key-header">
+                                <div class="api-key-name">${key.name}</div>
+                                <div class="api-key-status status-active">Active</div>
+                            </div>
+                            <div class="api-key-value">${key.key}</div>
+                            <div class="api-key-actions">
+                                <button class="copy-btn" onclick="copyToClipboard('${key.key}', true)">Copy</button>
+                                <button class="btn btn-danger" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="deleteApiKey('${key.id}')">Delete</button>
+                            </div>
                         </div>
-                    </div>
-                    
-                    ${key.description ? `<div style="color: #888; font-size: 0.875rem; margin-bottom: 0.5rem;">${key.description}</div>` : ''}
-                    
-                    <div class="api-key-value">${key.key}</div>
-                    
-                    <div class="api-key-meta">
-                        <span>Created: ${new Date(key.created_at).toLocaleDateString()}</span>
-                        <span>Used: ${key.usage_count || 0} times</span>
-                    </div>
-                    
-                    <div class="api-key-actions">
-                        <button class="copy-btn" onclick="copyToClipboard('${key.key}', true)">Copy Key</button>
-                        <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" 
-                                onclick="regenerateApiKey('${key.id}')">Regenerate</button>
-                        <button class="btn btn-danger" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" 
-                                onclick="deleteApiKey('${key.id}')">Delete</button>
-                    </div>
-                </div>
-            `).join('');
+                    `).join('');
+                }
+            } catch (error) { showAlert('Failed to load API keys', 'error'); }
         }
 
-        // Show/hide create key form
-        function showCreateKeyForm() {
-            document.getElementById('createKeyForm').classList.remove('hidden');
-        }
-
-        function hideCreateKeyForm() {
-            document.getElementById('createKeyForm').classList.add('hidden');
-            document.getElementById('newKeyName').value = '';
-            document.getElementById('newKeyDescription').value = '';
-        }
-
-        // Create API key
         async function createApiKey() {
-            const name = document.getElementById('newKeyName').value.trim();
-            const description = document.getElementById('newKeyDescription').value.trim();
-
-            if (!name) {
-                showAlert('Please enter a key name', 'error');
-                return;
-            }
-
+            const name = prompt('Enter a name for your API key:');
+            if (!name) return;
             try {
-                const response = await apiCall('/auth/api-keys', {
-                    method: 'POST',
-                    body: JSON.stringify({ name, description: description || null })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    showAlert('API key created successfully!', 'success');
-                    hideCreateKeyForm();
-                    loadApiKeys();
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to create API key');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
+                const response = await apiCall('/auth/api-keys', { method: 'POST', body: JSON.stringify({ name }) });
+                if (response.ok) { showAlert('API key created successfully!', 'success'); loadApiKeys(); }
+            } catch (error) { showAlert('Failed to create API key', 'error'); }
         }
 
-        // Regenerate API key
-        async function regenerateApiKey(keyId) {
-            if (!confirm('Are you sure you want to regenerate this API key? The old key will stop working immediately.')) {
-                return;
-            }
-
-            try {
-                const response = await apiCall(`/auth/api-keys/${keyId}/regenerate`, {
-                    method: 'POST'
-                });
-
-                if (response.ok) {
-                    showAlert('API key regenerated successfully!', 'success');
-                    loadApiKeys();
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to regenerate API key');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
-        }
-
-        // Delete API key
         async function deleteApiKey(keyId) {
-            if (!confirm('Are you sure you want to delete this API key? This action cannot be undone.')) {
-                return;
-            }
-
+            if (!confirm('Are you sure you want to delete this API key?')) return;
             try {
-                const response = await apiCall(`/auth/api-keys/${keyId}`, {
-                    method: 'DELETE'
-                });
-
-                if (response.ok) {
-                    showAlert('API key deleted successfully!', 'success');
-                    loadApiKeys();
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to delete API key');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
+                const response = await apiCall(`/auth/api-keys/${keyId}`, { method: 'DELETE' });
+                if (response.ok) { showAlert('API key deleted successfully!', 'success'); loadApiKeys(); }
+            } catch (error) { showAlert('Failed to delete API key', 'error'); }
         }
 
-        // Regenerate client credentials
         async function regenerateClientCredentials() {
-            if (!confirm('Are you sure you want to regenerate your Discord bot credentials? Your bot will need to be updated with the new credentials.')) {
-                return;
-            }
-
+            if (!confirm('Regenerate Discord bot credentials? Your bot will need new credentials.')) return;
             try {
-                const response = await apiCall('/auth/regenerate-client-credentials', {
-                    method: 'POST'
-                });
-
+                const response = await apiCall('/auth/regenerate-client-credentials', { method: 'POST' });
                 if (response.ok) {
                     const result = await response.json();
                     currentUser.client_id = result.client_id;
                     currentUser.client_secret = result.client_secret;
                     updateUI();
-                    showAlert('Client credentials regenerated successfully!', 'success');
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to regenerate credentials');
+                    showAlert('Client credentials regenerated!', 'success');
                 }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
+            } catch (error) { showAlert('Failed to regenerate credentials', 'error'); }
         }
 
-        // Update profile
         async function updateProfile() {
             const displayName = document.getElementById('accountDisplayName').value.trim();
-
             try {
-                const response = await apiCall('/auth/profile', {
-                    method: 'PUT',
-                    body: JSON.stringify({ display_name: displayName || null })
-                });
-
-                if (response.ok) {
-                    const result = await response.json();
-                    currentUser = result;
-                    updateUI();
-                    showAlert('Profile updated successfully!', 'success');
-                } else {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Failed to update profile');
-                }
-            } catch (error) {
-                showAlert(error.message, 'error');
-            }
+                const response = await apiCall('/auth/profile', { method: 'PUT', body: JSON.stringify({ display_name: displayName || null }) });
+                if (response.ok) { currentUser = await response.json(); updateUI(); showAlert('Profile updated!', 'success'); }
+            } catch (error) { showAlert('Failed to update profile', 'error'); }
         }
 
-        // Copy to clipboard
         async function copyToClipboard(text, isDirectText = false) {
             try {
                 const textToCopy = isDirectText ? text : document.getElementById(text).textContent;
                 await navigator.clipboard.writeText(textToCopy);
                 showAlert('Copied to clipboard!', 'success');
-            } catch (error) {
-                showAlert('Failed to copy to clipboard', 'error');
-            }
+            } catch (error) { showAlert('Failed to copy', 'error'); }
         }
 
-        // Show alert
         function showAlert(message, type = 'error') {
-            const alertContainer = document.getElementById('alertContainer');
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type}">
-                    ${message}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                alertContainer.innerHTML = '';
-            }, 5000);
+            document.getElementById('alertContainer').innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => document.getElementById('alertContainer').innerHTML = '', 5000);
         }
 
-        // Logout
-        function logout() {
-            localStorage.removeItem('access_token');
-            window.location.href = 'login.html';
-        }
+        function logout() { localStorage.removeItem('access_token'); window.location.href = 'login.html'; }
 
-        // Initialize dashboard
-        async function init() {
-            await loadUserData();
-            await loadApiKeys();
-        }
-
-        // Start the dashboard
+        async function init() { await loadUserData(); await loadApiKeys(); }
         init();
     </script>
 </body>

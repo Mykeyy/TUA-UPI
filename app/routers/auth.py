@@ -28,8 +28,8 @@ async def register_user(
         auth_service = AuthService(db)
         user = await auth_service.create_user(user_data)
         logger.info("User registered successfully", user_id=user.id, username=user.username)
-        # Don't return the user directly, return via UserResponse
-        return UserResponse.model_validate(user)
+        # Use AuthService to properly convert User to UserResponse
+        return auth_service._user_to_response(user)
     except ValueError as e:
         logger.warning("User registration failed", error=str(e))
         raise HTTPException(
@@ -53,13 +53,13 @@ async def login_user(
     try:
         auth_service = AuthService(db)
         token = await auth_service.authenticate_user(
-            user_credentials.username,
+            user_credentials.username_or_email,
             user_credentials.password
         )
-        logger.info("User logged in successfully", username=user_credentials.username)
+        logger.info("User logged in successfully", username_or_email=user_credentials.username_or_email)
         return token
     except ValueError as e:
-        logger.warning("Login failed", username=user_credentials.username, error=str(e))
+        logger.warning("Login failed", username_or_email=user_credentials.username_or_email, error=str(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -295,7 +295,7 @@ async def create_admin_user(
     try:
         auth_service = AuthService(db)
         admin_user = await auth_service.create_admin_user_if_not_exists()
-        return UserResponse.model_validate(admin_user)
+        return auth_service._user_to_response(admin_user)
     except Exception as e:
         logger.error("Error creating admin user", error=str(e))
         raise HTTPException(

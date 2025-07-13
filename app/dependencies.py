@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
 from jose import JWTError, jwt
 from datetime import datetime
 import structlog
@@ -51,10 +51,17 @@ async def get_current_user(
         raise credentials_exception
     
     # Update last seen
-    user.last_seen = datetime.utcnow()
+    await db.execute(
+        update(User)
+        .where(User.id == user.id)
+        .values(last_seen=datetime.utcnow())
+    )
     await db.commit()
     
-    return UserResponse.model_validate(user)
+    # Use AuthService to properly convert User to UserResponse
+    from app.services.auth import AuthService
+    auth_service = AuthService(db)
+    return auth_service._user_to_response(user)
 
 
 async def get_current_active_user(
@@ -101,7 +108,14 @@ async def api_key_auth(
         )
     
     # Update last seen
-    user.last_seen = datetime.utcnow()
+    await db.execute(
+        update(User)
+        .where(User.id == user.id)
+        .values(last_seen=datetime.utcnow())
+    )
     await db.commit()
     
-    return UserResponse.model_validate(user)
+    # Use AuthService to properly convert User to UserResponse
+    from app.services.auth import AuthService
+    auth_service = AuthService(db)
+    return auth_service._user_to_response(user)

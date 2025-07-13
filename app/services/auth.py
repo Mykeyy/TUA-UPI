@@ -64,7 +64,29 @@ class AuthService:
     
     def _user_to_response(self, user: User) -> UserResponse:
         """Convert User model to UserResponse schema"""
-        return UserResponse.model_validate(user)
+        # Create a dictionary with all user attributes plus calculated fields
+        user_dict = {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "display_name": user.display_name,
+            "is_active": user.is_active,
+            "is_admin": user.is_admin,
+            "is_verified": user.is_verified,
+            "is_premium": user.is_premium,
+            "total_commands": user.total_commands,
+            "total_downloads": user.total_downloads,
+            "successful_downloads": user.successful_downloads,
+            "failed_downloads": user.failed_downloads,
+            "daily_downloads": user.daily_downloads,
+            "daily_limit": user.daily_limit,
+            "created_at": user.created_at,
+            "last_seen": user.last_seen,
+            "last_login": user.last_login,
+            "has_api_key": bool(user.api_key),
+            "api_key_created_at": user.api_key_created_at,
+        }
+        return UserResponse(**user_dict)
     
     async def create_user(self, user_data: UserCreate) -> User:
         """Create a new user with email verification"""
@@ -128,8 +150,11 @@ class AuthService:
     
     async def authenticate_user(self, username: str, password: str) -> Token:
         """Authenticate user and return token with user info"""
+        # Check if user exists by username or email
         result = await self.db.execute(
-            select(User).where(User.username == username)
+            select(User).where(
+                (User.username == username) | (User.email == username)
+            )
         )
         user = result.scalar_one_or_none()
         

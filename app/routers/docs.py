@@ -105,3 +105,91 @@ async def get_discord_bot():
             """,
             status_code=404
         )
+
+@router.get("/docs/auth/login", response_class=HTMLResponse)
+async def get_login_page():
+    """
+    Serve the login page
+    """
+    login_file = DOCS_DIR / "auth" / "login.html"
+    if login_file.exists():
+        return FileResponse(login_file, media_type="text/html")
+    else:
+        return HTMLResponse(
+            content="""
+            <html>
+                <head><title>Login Not Found</title></head>
+                <body>
+                    <h1>Login Page Not Found</h1>
+                    <p>The login page is not available.</p>
+                </body>
+            </html>
+            """,
+            status_code=404
+        )
+
+@router.get("/docs/auth/signup", response_class=HTMLResponse)
+async def get_signup_page():
+    """
+    Serve the signup page
+    """
+    signup_file = DOCS_DIR / "auth" / "signup.html"
+    if signup_file.exists():
+        return FileResponse(signup_file, media_type="text/html")
+    else:
+        return HTMLResponse(
+            content="""
+            <html>
+                <head><title>Signup Not Found</title></head>
+                <body>
+                    <h1>Signup Page Not Found</h1>
+                    <p>The signup page is not available.</p>
+                </body>
+            </html>
+            """,
+            status_code=404
+        )
+
+@router.get("/docs/auth/dashboard", response_class=HTMLResponse)
+async def get_dashboard_page():
+    """
+    Serve the dashboard page
+    """
+    dashboard_file = DOCS_DIR / "auth" / "dashboard.html"
+    if dashboard_file.exists():
+        return FileResponse(dashboard_file, media_type="text/html")
+    else:
+        return HTMLResponse(
+            content="""
+            <html>
+                <head><title>Dashboard Not Found</title></head>
+                <body>
+                    <h1>Dashboard Page Not Found</h1>
+                    <p>The dashboard page is not available.</p>
+                </body>
+            </html>
+            """,
+            status_code=404
+        )
+
+@router.get("/docs/auth/forgot-password", response_class=HTMLResponse)
+async def get_forgot_password_page():
+    """
+    Serve the forgot password page
+    """
+    forgot_file = DOCS_DIR / "auth" / "forgot-password.html"
+    if forgot_file.exists():
+        return FileResponse(forgot_file, media_type="text/html")
+    else:
+        return HTMLResponse(
+            content="""
+            <html>
+                <head><title>Forgot Password Not Found</title></head>
+                <body>
+                    <h1>Forgot Password Page Not Found</h1>
+                    <p>The forgot password page is not available.</p>
+                </body>
+            </html>
+            """,
+            status_code=404
+        )

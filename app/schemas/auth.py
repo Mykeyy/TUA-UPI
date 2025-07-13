@@ -59,10 +59,10 @@ class UserCreate(BaseModel):
 
 class UserLogin(BaseModel):
     """Schema for user login request"""
-    username: str = Field(
+    username_or_email: str = Field(
         ...,
-        title="Username",
-        description="Your account username"
+        title="Username or Email",
+        description="Your account username or email address"
     )
     password: str = Field(
         ...,
@@ -73,7 +73,7 @@ class UserLogin(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": {
-                "username": "john_doe",
+                "username_or_email": "john_doe",
                 "password": "SecurePassword123!"
             }
         }
