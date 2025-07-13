@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>The Ultimate API System - Discord Bot</title>
+  <meta name="description" content="The Ultimate API System Discord Bot - Download Roblox audio files directly in your Discord server with powerful slash commands.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <!-- Google Material Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+  
+  <!-- Google Material Symbols -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  
+  <style>
+    .material-icons {
+      font-family: 'Material Icons';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      font-feature-settings: 'liga';
+      -webkit-font-feature-settings: 'liga';
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings:
+      'FILL' 1,
+      'wght' 600,
+      'GRAD' 200,
+      'opsz' 24;
+      font-family: 'Material Symbols Outlined';
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+    }
+
+    :root {
+      --primary-color: #3ac062;
+      --secondary-color: #1f1f1f;
+      --bg-color: #1f1f1f;
+      --surface-color: #1f1f1f;
+      --border-color: #3ac062;
+      --text-color: #ffffff;
+      --text-secondary: #ffffff;
+      --discord-blurple: #5865F2;
+      --gold-color: #ffd700;
+      --premium-color: #ff6b6b;
+    }
+
+    * {
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: var(--bg-color);
+      color: var(--text-color);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .header {
+      background: var(--surface-color);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .header-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--secondary-color);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+      box-shadow: 0 4px 14px 0 rgba(63, 192, 98, 0.3);
+      font-size: 24px;
+    }
+
+    .logo-text {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .badge {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-primary {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    .badge-discord {
+      background: var(--discord-blurple);
+      color: white;
+    }
+
+    .badge:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-section {
+      background: var(--secondary-color);
+      color: white;
+      padding: 4rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+      opacity: 0.3;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .bot-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 4px solid var(--primary-color);
+      margin: 0 auto 2rem;
+      display: block;
+      box-shadow: 0 8px 32px rgba(58, 192, 98, 0.3);
+    }
+
+    .hero-title {
+      font-size: 3.5rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+    }
+
+    .verified-badge {
+      color: var(--discord-blurple);
+      font-size: 2rem;
+    }
+
+    .hero-subtitle {
+      font-size: 1.5rem;
+      opacity: 0.9;
+      margin-bottom: 2rem;
+      line-height: 1.6;
+    }
+
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      margin-bottom: 3rem;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      display: block;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      opacity: 0.8;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 3rem;
+      color: var(--text-color);
+    }
+
+    .commands-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 2rem;
+      margin-bottom: 4rem;
+    }
+
+    .command-card {
+      background: rgba(58, 192, 98, 0.05);
+      border: 2px solid rgba(58, 192, 98, 0.2);
+      border-radius: 12px;
+      padding: 2rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .command-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(58, 192, 98, 0.3);
+    }
+
+    .command-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .command-desc {
+      color: var(--text-color);
+      margin-bottom: 1rem;
+      line-height: 1.6;
+    }
+
+    .command-usage {
+      background: rgba(58, 192, 98, 0.1);
+      padding: 1rem;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.9rem;
+      color: var(--primary-color);
+    }
+
+    .pricing-section {
+      background: rgba(58, 192, 98, 0.02);
+      padding: 4rem 2rem;
+      margin: 4rem 0;
+    }
+
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .pricing-card {
+      background: var(--bg-color);
+      border: 2px solid rgba(58, 192, 98, 0.3);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .pricing-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(58, 192, 98, 0.4);
+    }
+
+    .pricing-card.featured {
+      border-color: var(--gold-color);
+      background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(58, 192, 98, 0.05));
+    }
+
+    .pricing-card.premium {
+      border-color: var(--premium-color);
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.1), rgba(58, 192, 98, 0.05));
+    }
+
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--primary-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .pricing-badge.featured {
+      background: var(--gold-color);
+      color: var(--secondary-color);
+    }
+
+    .pricing-badge.premium {
+      background: var(--premium-color);
+    }
+
+    .pricing-tier {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--text-color);
+    }
+
+    .pricing-price {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      margin-bottom: 0.5rem;
+    }
+
+    .pricing-period {
+      color: var(--text-secondary);
+      opacity: 0.7;
+      margin-bottom: 2rem;
+    }
+
+    .pricing-features {
+      list-style: none;
+      padding: 0;
+      margin: 2rem 0;
+    }
+
+    .pricing-features li {
+      padding: 0.5rem 0;
+      color: var(--text-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .pricing-features .check {
+      color: var(--primary-color);
+      font-size: 1.2rem;
+    }
+
+    .pricing-button {
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .pricing-button:hover {
+      background: #2e9650;
+      transform: translateY(-2px);
+    }
+
+    .pricing-button.featured {
+      background: var(--gold-color);
+      color: var(--secondary-color);
+    }
+
+    .pricing-button.premium {
+      background: var(--premium-color);
+    }
+
+    .footer-credits {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-bottom: 2rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      justify-items: center;
+    }
+
+    .credit-item {
+      background: var(--bg-color);
+      padding: 2rem;
+      border-radius: 12px;
+      border: 2px solid var(--primary-color);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      text-align: center;
+    }
+
+    .credit-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(58, 192, 98, 0.3);
+    }
+
+    .credit-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: 3px solid var(--primary-color);
+      object-fit: cover;
+    }
+
+    .credit-label {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--primary-color);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .credit-name {
+      font-weight: 800;
+      font-size: 1.3rem;
+      color: var(--text-color);
+    }
+
+    .footer {
+      background: var(--bg-color);
+      border-top: 2px solid var(--primary-color);
+      padding: 3rem 2rem;
+      margin-top: 4rem;
+      text-align: center;
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 2.5rem;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .hero-stats {
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .pricing-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .footer-credits {
+        grid-template-columns: 1fr;
+        max-width: 400px;
+      }
+
+      .commands-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        <div class="logo-icon">
+          <span class="material-symbols-outlined" style="font-size: 28px; color: white;">skull</span>
+        </div>
+        <div class="logo-text">The Ultimate API System</div>
+      </div>
+      <div class="header-controls">
+        <a href="/docs" class="badge badge-primary">
+          <i class="material-icons">arrow_back</i>
+          Back to API Docs
+        </a>
+        <a href="https://discord.com/application-directory/1338901898488709181" class="badge badge-discord" target="_blank">
+          <i class="material-icons">add</i>
+          Add to Discord
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <section class="hero-section">
+    <div class="hero-content">
+      <img src="https://cdn.discordapp.com/avatars/1338901898488709181/755a0b1c08a261cf2b1de90b4cf5a27c.webp?size=1024" alt="The Ultimate API System Bot" class="bot-avatar">
+      
+      <h1 class="hero-title">
+        The Ultimate API System
+        <i class="material-icons verified-badge">verified</i>
+      </h1>
+      
+      <p class="hero-subtitle">
+        Download Roblox audio files directly in your Discord server with powerful slash commands. 
+        Fast, reliable, and easy to use.
+      </p>
+      
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">484</span>
+          <span class="stat-label">Servers</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">614</span>
+          <span class="stat-label">Individual Users</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <h2 class="section-title">Slash Commands</h2>
+    
+    <div class="commands-grid">
+      <div class="command-card">
+        <div class="command-name">
+          <i class="material-icons">download</i>
+          /download
+        </div>
+        <div class="command-desc">
+          Download multiple Roblox audio files at once. Supports up to 10 assets per request with real-time progress tracking.
+        </div>
+        <div class="command-usage">
+          /download place_id:123456 asset_ids:1001,1002,1003
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-name">
+          <i class="material-icons">info</i>
+          /info
+        </div>
+        <div class="command-desc">
+          Get detailed information about a Roblox audio asset including name, creator, and description.
+        </div>
+        <div class="command-usage">
+          /info asset_id:123456789
+        </div>
+      </div>
+
+      <div class="command-card">
+        <div class="command-name">
+          <i class="material-icons">layers</i>
+          /batch
+        </div>
+        <div class="command-desc">
+          Download consecutive audio files in batch. Perfect for downloading series of related audio assets.
+        </div>
+        <div class="command-usage">
+          /batch place_id:123456 start_id:1001 count:5
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="pricing-section">
+    <div class="container">
+      <h2 class="section-title">Pricing Plans</h2>
+      
+      <div class="pricing-grid">
+        <!-- Free Tier -->
+        <div class="pricing-card">
+          <div class="pricing-tier">Free Tier</div>
+          <div class="pricing-price">$0</div>
+          <div class="pricing-period">Forever</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> 25 downloads per 6 hours</li>
+            <li><i class="material-icons check">check_circle</i> All slash commands</li>
+            <li><i class="material-icons check">check_circle</i> Basic support</li>
+          </ul>
+          <button class="pricing-button">Get Started</button>
+        </div>
+
+        <!-- Server Booster Tier -->
+        <div class="pricing-card featured">
+          <div class="pricing-badge featured">⭐ Limited Time</div>
+          <div class="pricing-tier">Server Booster Tier</div>
+          <div class="pricing-price">Free</div>
+          <div class="pricing-period">For first 15 boosters</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> 50 downloads per 6 hours</li>
+            <li><i class="material-icons check">check_circle</i> Booster exclusive perks</li>
+            <li><i class="material-icons check">check_circle</i> Priority queue</li>
+          </ul>
+          <button class="pricing-button featured">Boost Server</button>
+        </div>
+
+        <!-- Starter Plan -->
+        <div class="pricing-card">
+          <div class="pricing-tier">Starter Plan 💎</div>
+          <div class="pricing-price">$1</div>
+          <div class="pricing-period">per month</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> 100 downloads per 6 hours</li>
+            <li><i class="material-icons check">check_circle</i> Faster processing</li>
+            <li><i class="material-icons check">check_circle</i> Email support</li>
+          </ul>
+          <button class="pricing-button">Choose Plan</button>
+        </div>
+
+        <!-- Popular Plan -->
+        <div class="pricing-card featured">
+          <div class="pricing-badge">🔥 Recommended</div>
+          <div class="pricing-tier">Popular Plan</div>
+          <div class="pricing-price">$3</div>
+          <div class="pricing-period">per month</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> 200 downloads per 4 hours</li>
+            <li><i class="material-icons check">check_circle</i> High priority processing</li>
+            <li><i class="material-icons check">check_circle</i> Discord support</li>
+            <li><i class="material-icons check">check_circle</i> Bulk download bonus</li>
+          </ul>
+          <button class="pricing-button featured">Choose Plan</button>
+        </div>
+
+        <!-- Pro Plan -->
+        <div class="pricing-card premium">
+          <div class="pricing-tier">Pro Plan</div>
+          <div class="pricing-price">$5</div>
+          <div class="pricing-period">per month</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> 300 downloads per 3 hours</li>
+            <li><i class="material-icons check">check_circle</i> Beta access</li>
+            <li><i class="material-icons check">check_circle</i> Priority support</li>
+            <li><i class="material-icons check">check_circle</i> Advanced features</li>
+          </ul>
+          <button class="pricing-button premium">Choose Plan</button>
+        </div>
+
+        <!-- Lifetime -->
+        <div class="pricing-card premium">
+          <div class="pricing-badge premium">🚀 Best Value</div>
+          <div class="pricing-tier">Lifetime</div>
+          <div class="pricing-price">$15</div>
+          <div class="pricing-period">one-time payment</div>
+          <ul class="pricing-features">
+            <li><i class="material-icons check">check_circle</i> Unlimited downloads</li>
+            <li><i class="material-icons check">check_circle</i> All future features</li>
+            <li><i class="material-icons check">check_circle</i> VIP role</li>
+            <li><i class="material-icons check">check_circle</i> Lifetime support</li>
+          </ul>
+          <button class="pricing-button premium">Get Lifetime</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <h3 class="section-title">Development Team</h3>
+      <div class="footer-credits">
+        <div class="credit-item">
+          <img src="https://cdn.discordapp.com/avatars/730104482033303602/cceb98ffcdcf1a4a3dad2aef92935f24.webp?size=1024" alt="Mykey" class="credit-avatar">
+          <span class="credit-label">API developed by</span>
+          <span class="credit-name">Mykey</span>
+        </div>
+        <div class="credit-item">
+          <img src="https://cdn.discordapp.com/avatars/1143822009961296004/92eb591fae742a0405e2094b7ac9d7d8.webp?size=1024" alt="thetopgreal" class="credit-avatar">
+          <span class="credit-label">Discord Bot developed by</span>
+          <span class="credit-name">thetopgreal</span>
+        </div>
+      </div>
+      <p style="color: var(--text-color); opacity: 0.8; margin-top: 2rem;">
+        © 2025 The Ultimate API System. All rights reserved.
+      </p>
+    </div>
+  </footer>
+</body>
+</html>

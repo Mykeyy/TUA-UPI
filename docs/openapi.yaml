@@ -1,0 +1,1051 @@
+openapi: 3.0.3
+info:
+  title: The Ultimate API
+  description: |
+    # 💀 The Ultimate API 
+    
+    Welcome to **The Ultimate API** - the most comprehensive and powerful Roblox audio downloading service available. This API provides seamless access to Roblox's vast audio library with advanced features including batch processing, detailed analytics, user management, and robust rate limiting.
+    
+    ## 🚀 Key Features
+    
+    - **🎵 Audio Downloads**: Download any public Roblox audio file instantly
+    - **📦 Batch Processing**: Download multiple audio files in a single request
+    - **👥 User Management**: Secure authentication with JWT tokens and API keys
+    - **📊 Advanced Analytics**: Detailed statistics and usage tracking
+    - **🛡️ Rate Limiting**: Smart rate limiting to prevent abuse
+    - **⚡ High Performance**: Async processing for maximum speed
+    - **🔒 Secure**: Industry-standard security practices
+    
+    ## 🛠️ Getting Started
+    
+    1. **Register** a new account using the `/auth/register` endpoint
+    2. **Login** to get your JWT token via `/auth/login`
+    3. **Generate** an API key (optional) via `/auth/api-key`
+    4. **Start downloading** audio files using `/audio/download`
+    
+    ## 🔐 Authentication
+    
+    This API supports two authentication methods:
+    - **JWT Tokens**: Perfect for web applications and temporary access
+    - **API Keys**: Ideal for server-to-server communication and long-term access
+    
+    ## 📈 Rate Limits
+    
+    - **Authenticated Users**: 1000 requests per hour
+    - **Premium Users**: 5000 requests per hour
+    - **Batch Downloads**: Limited to 50 files per request
+    
+    ## 🎯 Base URL
+    
+    ```
+    https://api.ultimate-roblox.com
+    ```
+    
+    For development:
+    ```
+    http://localhost:8000
+    ```
+    
+    ## 👨‍💻 Credits
+    
+    - **API developed by**: Mykey
+    - **Discord bot made by**: thetopgreal | holymaygodbewithyou
+    
+    ## Additional Information
+    
+    - **[Contact The Ultimate API Support](https://github.com/ultimate-api/roblox-audio)**
+    - **[MIT License](#mit)**
+    - **[Terms of Service](#terms)**
+    
+  version: 1.0.0
+  contact:
+    name: The Ultimate API Support
+    email: support@ultimate-roblox.com
+    url: https://github.com/ultimate-api/roblox-audio
+  license:
+    name: MIT
+    url: #mit
+  termsOfService: #terms
+
+servers:
+  - url: http://localhost:8000
+    description: Development server
+  - url: https://api.ultimate-roblox.com
+    description: Production server
+
+tags:
+  - name: Authentication
+    description: |
+      Secure user authentication and authorization endpoints.
+      
+      The Ultimate API uses modern authentication methods including JWT tokens and API keys.
+      All user data is encrypted and stored securely.
+  - name: Audio
+    description: |
+      Audio downloading and management endpoints.
+      
+      Download Roblox audio files with lightning speed and reliability. Supports both single
+      file downloads and batch processing for maximum efficiency.
+  - name: Statistics
+    description: |
+      Analytics and usage statistics endpoints.
+      
+      Get detailed insights into your API usage, download patterns, and performance metrics.
+      Perfect for monitoring and optimization.
+  - name: Health
+    description: |
+      System health and monitoring endpoints.
+      
+      Check the API status, uptime, and performance metrics.
+
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health Check
+      description: |
+        Check the health status of The Ultimate API.
+        
+        This endpoint provides real-time information about:
+        - API server status
+        - Database connectivity
+        - External service availability
+        - Response time metrics
+        
+        **Use this endpoint to:**
+        - Monitor API availability
+        - Check system performance
+        - Verify service dependencies
+      responses:
+        '200':
+          description: API is healthy and operational
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "healthy"
+                  message:
+                    type: string
+                    example: "The Ultimate API is running smoothly"
+                  timestamp:
+                    type: string
+                    format: date-time
+                  version:
+                    type: string
+                    example: "1.0.0"
+                  uptime:
+                    type: number
+                    description: Server uptime in seconds
+                    example: 3600
+              examples:
+                healthy:
+                  summary: Healthy Response
+                  value:
+                    status: "healthy"
+                    message: "The Ultimate API is running smoothly"
+                    timestamp: "2025-07-13T00:00:00Z"
+                    version: "1.0.0"
+                    uptime: 3600
+
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register New User
+      description: |
+        Create a new user account on The Ultimate API.
+        
+        **Registration includes:**
+        - Secure password hashing
+        - Email validation
+        - Username uniqueness check
+        - Automatic profile creation
+        
+        **Requirements:**
+        - Username: 3-50 characters, alphanumeric, dashes, underscores only
+        - Email: Valid email address format
+        - Password: Minimum 8 characters with complexity requirements
+        
+        **After registration:**
+        - Account is immediately active
+        - Use `/auth/login` to get your JWT token
+        - Generate API keys via `/auth/api-key`
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+            examples:
+              user_registration:
+                summary: Standard User Registration
+                value:
+                  username: "audio_lover_2025"
+                  email: "user@example.com"
+                  password: "SecureP@ssw0rd!"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+              examples:
+                created_user:
+                  summary: Successfully Created User
+                  value:
+                    id: 1
+                    username: "audio_lover_2025"
+                    email: "user@example.com"
+                    is_active: true
+                    is_admin: false
+                    total_commands: 0
+                    total_downloads: 0
+                    successful_downloads: 0
+                    failed_downloads: 0
+                    created_at: "2025-07-13T00:00:00Z"
+                    last_seen: null
+        '400':
+          description: Validation error or user already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                username_taken:
+                  summary: Username Already Exists
+                  value:
+                    detail: "Username already registered"
+                    error_code: "USER_EXISTS"
+                invalid_email:
+                  summary: Invalid Email Format
+                  value:
+                    detail: "Invalid email format"
+                    error_code: "VALIDATION_ERROR"
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User Login
+      description: |
+        Authenticate a user and receive a JWT access token.
+        
+        **Login Process:**
+        - Validates username and password
+        - Returns JWT token for authentication
+        - Updates last seen timestamp
+        - Provides token expiration information
+        
+        **Token Usage:**
+        - Include in Authorization header: `Bearer <token>`
+        - Valid for 24 hours by default
+        - Use for all authenticated endpoints
+        
+        **Security Features:**
+        - Password hashing verification
+        - Rate limiting protection
+        - Login attempt tracking
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserLogin'
+            examples:
+              user_login:
+                summary: Standard Login
+                value:
+                  username: "audio_lover_2025"
+                  password: "SecureP@ssw0rd!"
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+              examples:
+                login_success:
+                  summary: Successful Login
+                  value:
+                    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    token_type: "bearer"
+                    expires_in: 86400
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_credentials:
+                  summary: Wrong Username/Password
+                  value:
+                    detail: "Invalid username or password"
+                    error_code: "INVALID_CREDENTIALS"
+
+  /auth/api-key:
+    post:
+      tags:
+        - Authentication
+      summary: Generate API Key
+      description: |
+        Generate a new API key for the authenticated user.
+        
+        **API Key Benefits:**
+        - Long-term authentication (no expiration)
+        - Perfect for server-to-server communication
+        - Higher rate limits
+        - Simplified integration
+        
+        **Usage:**
+        - Include in X-API-Key header
+        - Can be used instead of JWT tokens
+        - Revoke anytime through user dashboard
+        
+        **Security Notes:**
+        - API keys are generated using cryptographically secure methods
+        - Each user can have multiple API keys
+        - Keys can be named and managed individually
+      security:
+        - bearerAuth: []
+      responses:
+        '201':
+          description: API key generated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIKeyResponse'
+              examples:
+                api_key_created:
+                  summary: New API Key Generated
+                  value:
+                    api_key: "uk_live_abc123def456ghi789jkl012mno345"
+                    created_at: "2025-07-13T00:00:00Z"
+                    message: "API key generated successfully"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /audio/download:
+    post:
+      tags:
+        - Audio
+      summary: Download Audio File
+      description: |
+        Download a single Roblox audio file by its asset ID.
+        
+        **Features:**
+        - Lightning-fast downloads
+        - Automatic file format detection
+        - Metadata extraction
+        - Error handling and retry logic
+        
+        **Process:**
+        1. Validates the Roblox asset ID
+        2. Fetches audio metadata from Roblox
+        3. Downloads the audio file
+        4. Returns download information
+        5. Logs the download for statistics
+        
+        **Supported Formats:**
+        - MP3 (most common)
+        - OGG
+        - WAV
+        - M4A
+        
+        **File Information Provided:**
+        - Original filename
+        - File size
+        - Duration (if available)
+        - Audio quality metrics
+        - Download speed statistics
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AudioDownloadRequest'
+            examples:
+              single_download:
+                summary: Download Popular Audio
+                value:
+                  asset_id: 142376088
+                  include_metadata: true
+      responses:
+        '200':
+          description: Audio downloaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AudioDownloadResponse'
+              examples:
+                download_success:
+                  summary: Successful Download
+                  value:
+                    asset_id: 142376088
+                    filename: "Roblox_Oof_Sound.mp3"
+                    file_size: 24576
+                    download_url: "https://api.ultimate-roblox.com/files/temp/abc123.mp3"
+                    duration: 1.2
+                    format: "mp3"
+                    quality: "128kbps"
+                    success: true
+                    download_time: 0.85
+                    metadata:
+                      title: "Oof Sound Effect"
+                      creator: "Roblox"
+                      created_date: "2013-04-01T00:00:00Z"
+        '400':
+          description: Invalid asset ID or download failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                invalid_asset:
+                  summary: Invalid Asset ID
+                  value:
+                    detail: "Asset ID 999999999 not found or not accessible"
+                    error_code: "ASSET_NOT_FOUND"
+                download_failed:
+                  summary: Download Failed
+                  value:
+                    detail: "Failed to download audio file"
+                    error_code: "DOWNLOAD_ERROR"
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /audio/batch:
+    post:
+      tags:
+        - Audio
+      summary: Batch Download Audio Files
+      description: |
+        Download multiple Roblox audio files in a single request.
+        
+        **Batch Processing Features:**
+        - Concurrent downloads for maximum speed
+        - Individual file status tracking
+        - Partial success handling
+        - Progress monitoring
+        - Automatic retry for failed downloads
+        
+        **Limits:**
+        - Maximum 50 files per batch request
+        - Total size limit: 500MB per batch
+        - Processing timeout: 5 minutes
+        
+        **Response Details:**
+        - Individual success/failure status for each file
+        - Download statistics and timing
+        - Error details for failed downloads
+        - ZIP archive option for multiple files
+        
+        **Best Practices:**
+        - Use smaller batches for better performance
+        - Monitor the response for partial failures
+        - Implement retry logic for failed items
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchDownloadRequest'
+            examples:
+              batch_download:
+                summary: Download Multiple Audio Files
+                value:
+                  asset_ids: [142376088, 131961136, 130768997]
+                  include_metadata: true
+                  create_zip: false
+      responses:
+        '200':
+          description: Batch download completed (may include partial failures)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchDownloadResponse'
+              examples:
+                batch_success:
+                  summary: Successful Batch Download
+                  value:
+                    total_requested: 3
+                    successful_downloads: 3
+                    failed_downloads: 0
+                    total_size: 73728
+                    processing_time: 2.45
+                    downloads:
+                      - asset_id: 142376088
+                        filename: "Oof_Sound.mp3"
+                        success: true
+                        file_size: 24576
+                        download_time: 0.85
+                      - asset_id: 131961136
+                        filename: "Click_Sound.mp3"
+                        success: true
+                        file_size: 12288
+                        download_time: 0.45
+                      - asset_id: 130768997
+                        filename: "Victory_Sound.mp3"
+                        success: true
+                        file_size: 36864
+                        download_time: 1.15
+        '400':
+          description: Invalid request or too many files
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /audio/history:
+    get:
+      tags:
+        - Audio
+      summary: Download History
+      description: |
+        Retrieve the download history for the authenticated user.
+        
+        **History Features:**
+        - Chronological download listing
+        - Advanced filtering options
+        - Pagination support
+        - Export capabilities
+        
+        **Filter Options:**
+        - Date range filtering
+        - Success/failure status
+        - File type filtering
+        - Search by filename or asset ID
+        
+        **Pagination:**
+        - Default: 50 items per page
+        - Maximum: 100 items per page
+        - Cursor-based pagination for performance
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: start_date
+          in: query
+          description: Filter downloads from this date
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          description: Filter downloads until this date
+          schema:
+            type: string
+            format: date
+        - name: success_only
+          in: query
+          description: Show only successful downloads
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Download history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DownloadHistory'
+
+  /stats/user:
+    get:
+      tags:
+        - Statistics
+      summary: User Statistics
+      description: |
+        Get comprehensive statistics for the authenticated user.
+        
+        **Statistics Include:**
+        - Total downloads and success rate
+        - Bandwidth usage
+        - Popular download times
+        - File type preferences
+        - Monthly/weekly trends
+        
+        **Metrics Provided:**
+        - Download count and success rate
+        - Total bandwidth consumed
+        - Average file size
+        - Peak usage periods
+        - Favorite audio categories
+      security:
+        - bearerAuth: []
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: User statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserStats'
+
+  /stats/global:
+    get:
+      tags:
+        - Statistics
+      summary: Global Statistics
+      description: |
+        Get global platform statistics (admin only).
+        
+        **Global Metrics:**
+        - Total registered users
+        - Platform-wide downloads
+        - Popular audio files
+        - System performance metrics
+        - Usage trends and patterns
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Global statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalStats'
+        '403':
+          description: Admin access required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token authentication. Include the token in the Authorization header:
+        ```
+        Authorization: Bearer <your_jwt_token>
+        ```
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: |
+        API key authentication. Include your API key in the X-API-Key header:
+        ```
+        X-API-Key: uk_live_your_api_key_here
+        ```
+
+  schemas:
+    UserCreate:
+      type: object
+      required:
+        - username
+        - email
+        - password
+      properties:
+        username:
+          type: string
+          pattern: "^[a-zA-Z0-9_-]+$"
+          minLength: 3
+          maxLength: 50
+          description: Unique username (3-50 characters, alphanumeric, dashes, underscores only)
+          example: "audio_lover_2025"
+        email:
+          type: string
+          format: email
+          description: Valid email address
+          example: "user@example.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 100
+          description: Strong password (minimum 8 characters)
+          example: "SecureP@ssw0rd!"
+
+    UserLogin:
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          description: Your username
+          example: "audio_lover_2025"
+        password:
+          type: string
+          description: Your password
+          example: "SecureP@ssw0rd!"
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Unique user ID
+          example: 1
+        username:
+          type: string
+          description: Username
+          example: "audio_lover_2025"
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "user@example.com"
+        is_active:
+          type: boolean
+          description: Account status
+          example: true
+        is_admin:
+          type: boolean
+          description: Admin privileges
+          example: false
+        total_commands:
+          type: integer
+          description: Total API commands executed
+          example: 156
+        total_downloads:
+          type: integer
+          description: Total download attempts
+          example: 142
+        successful_downloads:
+          type: integer
+          description: Successful downloads
+          example: 138
+        failed_downloads:
+          type: integer
+          description: Failed downloads
+          example: 4
+        created_at:
+          type: string
+          format: date-time
+          description: Account creation timestamp
+          example: "2025-07-13T00:00:00Z"
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last activity timestamp
+          example: "2025-07-13T12:30:00Z"
+
+    Token:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        token_type:
+          type: string
+          description: Token type
+          example: "bearer"
+        expires_in:
+          type: integer
+          description: Token expiration time in seconds
+          example: 86400
+
+    APIKeyResponse:
+      type: object
+      properties:
+        api_key:
+          type: string
+          description: Generated API key
+          example: "uk_live_abc123def456ghi789jkl012mno345"
+        created_at:
+          type: string
+          format: date-time
+          description: API key creation timestamp
+          example: "2025-07-13T00:00:00Z"
+        message:
+          type: string
+          description: Success message
+          example: "API key generated successfully"
+
+    AudioDownloadRequest:
+      type: object
+      required:
+        - asset_id
+      properties:
+        asset_id:
+          type: integer
+          description: Roblox asset ID of the audio file
+          example: 142376088
+        include_metadata:
+          type: boolean
+          description: Include audio metadata in response
+          default: true
+          example: true
+
+    AudioDownloadResponse:
+      type: object
+      properties:
+        asset_id:
+          type: integer
+          description: Roblox asset ID
+          example: 142376088
+        filename:
+          type: string
+          description: Downloaded filename
+          example: "Roblox_Oof_Sound.mp3"
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 24576
+        download_url:
+          type: string
+          description: Temporary download URL
+          example: "https://api.ultimate-roblox.com/files/temp/abc123.mp3"
+        duration:
+          type: number
+          description: Audio duration in seconds
+          example: 1.2
+        format:
+          type: string
+          description: Audio format
+          example: "mp3"
+        quality:
+          type: string
+          description: Audio quality
+          example: "128kbps"
+        success:
+          type: boolean
+          description: Download success status
+          example: true
+        download_time:
+          type: number
+          description: Download time in seconds
+          example: 0.85
+        metadata:
+          type: object
+          description: Audio metadata
+          properties:
+            title:
+              type: string
+              example: "Oof Sound Effect"
+            creator:
+              type: string
+              example: "Roblox"
+            created_date:
+              type: string
+              format: date-time
+              example: "2013-04-01T00:00:00Z"
+
+    BatchDownloadRequest:
+      type: object
+      required:
+        - asset_ids
+      properties:
+        asset_ids:
+          type: array
+          items:
+            type: integer
+          maxItems: 50
+          description: Array of Roblox asset IDs (max 50)
+          example: [142376088, 131961136, 130768997]
+        include_metadata:
+          type: boolean
+          description: Include metadata for each file
+          default: true
+          example: true
+        create_zip:
+          type: boolean
+          description: Create ZIP archive of all files
+          default: false
+          example: false
+
+    BatchDownloadResponse:
+      type: object
+      properties:
+        total_requested:
+          type: integer
+          description: Total files requested
+          example: 3
+        successful_downloads:
+          type: integer
+          description: Number of successful downloads
+          example: 3
+        failed_downloads:
+          type: integer
+          description: Number of failed downloads
+          example: 0
+        total_size:
+          type: integer
+          description: Total size of all files in bytes
+          example: 73728
+        processing_time:
+          type: number
+          description: Total processing time in seconds
+          example: 2.45
+        downloads:
+          type: array
+          items:
+            $ref: '#/components/schemas/AudioDownloadResponse'
+
+    DownloadHistory:
+      type: object
+      properties:
+        downloads:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryItem'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
+    HistoryItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        asset_id:
+          type: integer
+          example: 142376088
+        filename:
+          type: string
+          example: "Oof_Sound.mp3"
+        success:
+          type: boolean
+          example: true
+        file_size:
+          type: integer
+          example: 24576
+        download_time:
+          type: number
+          example: 0.85
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-07-13T12:30:00Z"
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 50
+        total:
+          type: integer
+          example: 156
+        has_next:
+          type: boolean
+          example: true
+        has_prev:
+          type: boolean
+          example: false
+
+    UserStats:
+      type: object
+      properties:
+        total_commands:
+          type: integer
+          description: Total API commands executed
+          example: 156
+        total_downloads:
+          type: integer
+          description: Total download attempts
+          example: 142
+        successful_downloads:
+          type: integer
+          description: Successful downloads
+          example: 138
+        failed_downloads:
+          type: integer
+          description: Failed downloads
+          example: 4
+        success_rate:
+          type: number
+          description: Success rate percentage
+          example: 97.18
+        first_seen:
+          type: string
+          format: date-time
+          description: First API usage
+          example: "2025-07-01T00:00:00Z"
+        last_seen:
+          type: string
+          format: date-time
+          nullable: true
+          description: Last API usage
+          example: "2025-07-13T12:30:00Z"
+
+    GlobalStats:
+      type: object
+      properties:
+        total_users:
+          type: integer
+          example: 1250
+        total_downloads:
+          type: integer
+          example: 45678
+        total_bandwidth:
+          type: integer
+          description: Total bandwidth in bytes
+          example: 1234567890
+        popular_files:
+          type: array
+          items:
+            type: object
+            properties:
+              asset_id:
+                type: integer
+                example: 142376088
+              downloads:
+                type: integer
+                example: 1234
+              title:
+                type: string
+                example: "Oof Sound Effect"
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error description
+          example: "Asset ID not found"
+        error_code:
+          type: string
+          description: Machine-readable error code
+          example: "ASSET_NOT_FOUND"
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+          example: "2025-07-13T12:30:00Z"
