@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Float
 from sqlalchemy.sql import func
+from sqlalchemy.orm import Mapped, mapped_column
 from datetime import datetime
+from typing import Optional
 
 from app.database import Base
 

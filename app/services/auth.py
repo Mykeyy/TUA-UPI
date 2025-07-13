@@ -1,5 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from passlib.context import CryptContext
 from jose import jwt
 from datetime import datetime, timedelta
@@ -58,9 +59,14 @@ class AuthService:
         """Reset daily downloads if it's a new day"""
         now = datetime.utcnow()
         if user.last_daily_reset is None or user.last_daily_reset.date() < now.date():
-            user.daily_downloads = 0
-            user.last_daily_reset = now
+            await self.db.execute(
+                update(User)
+                .where(User.id == user.id)
+                .values(daily_downloads=0, last_daily_reset=now)
+            )
             await self.db.commit()
+            # Refresh the user object to get updated values
+            await self.db.refresh(user)
     
     def _user_to_response(self, user: User) -> UserResponse:
         """Convert User model to UserResponse schema"""
@@ -100,7 +106,11 @@ class AuthService:
         existing_user = result.scalar_one_or_none()
         
         if existing_user:
-            if existing_user.username == user_data.username:
+            # Check which field conflicts
+            existing_username = await self.db.execute(
+                select(User).where(User.username == user_data.username)
+            )
+            if existing_username.scalar_one_or_none():
                 raise ValueError("Username already exists")
             else:
                 raise ValueError("Email already exists")
@@ -131,21 +141,27 @@ class AuthService:
         # Send verification email (unless it's admin)
         if not is_admin and self.email_service:
             try:
-                token = self.email_service.generate_verification_token(user.email)
-                user.email_verification_token = token
-                user.email_verification_sent_at = datetime.utcnow()
+                token = self.email_service.generate_verification_token(user_data.email)
+                await self.db.execute(
+                    update(User)
+                    .where(User.id == user.id)
+                    .values(
+                        email_verification_token=token,
+                        email_verification_sent_at=datetime.utcnow()
+                    )
+                )
                 await self.db.commit()
                 
                 await self.email_service.send_verification_email(
-                    user.email, 
-                    user.username, 
+                    user_data.email, 
+                    user_data.username, 
                     token
                 )
             except Exception as e:
                 logger.error("Failed to send verification email", user_id=user.id, error=str(e))
                 # Don't fail user creation if email fails
         
-        logger.info("User created", user_id=user.id, username=user.username, is_admin=is_admin)
+        logger.info("User created", user_id=user.id, username=user_data.username, is_admin=is_admin)
         return user
     
     async def authenticate_user(self, username: str, password: str) -> Token:
@@ -158,20 +174,25 @@ class AuthService:
         )
         user = result.scalar_one_or_none()
         
-        if not user or not self.verify_password(password, user.hashed_password):
+        if not user or not self.verify_password(password, user.hashed_password):  # type: ignore
             raise ValueError("Incorrect username or password")
         
-        if not user.is_active:
+        if not user.is_active:  # type: ignore
             raise ValueError("Account is disabled")
         
-        # Update last login and last seen
-        user.last_login = datetime.utcnow()
-        user.last_seen = datetime.utcnow()
+        # Update last login and last seen using update query
+        now = datetime.utcnow()
+        await self.db.execute(
+            update(User)
+            .where(User.id == user.id)
+            .values(last_login=now, last_seen=now)
+        )
         
         # Reset daily downloads if needed
         await self._reset_daily_downloads_if_needed(user)
         
         await self.db.commit()
+        await self.db.refresh(user)
         
         # Create access token
         access_token_expires = timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
@@ -201,17 +222,24 @@ class AuthService:
         
         # Generate secure API key
         api_key = f"rapi_{secrets.token_urlsafe(32)}"
+        now = datetime.utcnow()
         
-        user.api_key = api_key
-        user.api_key_created_at = datetime.utcnow()
-        user.api_key_name = name
-        
+        # Use update query to modify the user
+        await self.db.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                api_key=api_key,
+                api_key_created_at=now,
+                api_key_name=name
+            )
+        )
         await self.db.commit()
         
         return APIKeyResponse(
             api_key=api_key,
             name=name,
-            created_at=user.api_key_created_at,
+            created_at=now,
             message="API key generated successfully"
         )
     
@@ -222,14 +250,14 @@ class AuthService:
         )
         user = result.scalar_one_or_none()
         
-        if not user or not user.api_key:
+        if not user or not user.api_key:  # type: ignore
             raise ValueError("No API key found")
         
         return APIKeyInfo(
-            name=user.api_key_name,
-            created_at=user.api_key_created_at,
-            last_used=user.api_key_last_used,
-            key_preview=user.api_key[:8] + "..."
+            name=user.api_key_name,  # type: ignore
+            created_at=user.api_key_created_at,  # type: ignore
+            last_used=user.api_key_last_used,  # type: ignore
+            key_preview=user.api_key[:8] + "..."  # type: ignore
         )
     
     async def revoke_api_key(self, user_id: int):
@@ -242,11 +270,17 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
         
-        user.api_key = None
-        user.api_key_created_at = None
-        user.api_key_name = None
-        user.api_key_last_used = None
-        
+        # Use update query to clear API key fields
+        await self.db.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                api_key=None,
+                api_key_created_at=None,
+                api_key_name=None,
+                api_key_last_used=None
+            )
+        )
         await self.db.commit()
     
     async def generate_client_credentials(self, user_id: int, client_name: str) -> ClientCredentialsResponse:
@@ -266,10 +300,16 @@ class AuthService:
         # Hash the client secret for storage
         hashed_secret = self.get_password_hash(client_secret)
         
-        user.client_id = client_id
-        user.client_secret = hashed_secret
-        user.client_name = client_name
-        
+        # Use update query to set client credentials
+        await self.db.execute(
+            update(User)
+            .where(User.id == user_id)
+            .values(
+                client_id=client_id,
+                client_secret=hashed_secret,
+                client_name=client_name
+            )
+        )
         await self.db.commit()
         
         return ClientCredentialsResponse(
@@ -291,18 +331,24 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
         
-        if user.is_verified:
+        if user.is_verified:  # type: ignore
             raise ValueError("Email already verified")
         
         # Generate new token
-        token = self.email_service.generate_verification_token(user.email)
-        user.email_verification_token = token
-        user.email_verification_sent_at = datetime.utcnow()
+        token = self.email_service.generate_verification_token(email)
+        await self.db.execute(
+            update(User)
+            .where(User.id == user.id)
+            .values(
+                email_verification_token=token,
+                email_verification_sent_at=datetime.utcnow()
+            )
+        )
         await self.db.commit()
         
         await self.email_service.send_verification_email(
-            user.email, 
-            user.username, 
+            email, 
+            user.username,  # type: ignore
             token
         )
     
@@ -324,18 +370,24 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
         
-        if user.is_verified:
+        if user.is_verified:  # type: ignore
             raise ValueError("Email already verified")
         
-        user.is_verified = True
-        user.email_verification_token = None
-        user.email_verification_sent_at = None
-        
+        # Use update query to verify email
+        await self.db.execute(
+            update(User)
+            .where(User.id == user.id)
+            .values(
+                is_verified=True,
+                email_verification_token=None,
+                email_verification_sent_at=None
+            )
+        )
         await self.db.commit()
         
         # Send welcome email
         try:
-            await self.email_service.send_welcome_email(user.email, user.username)
+            await self.email_service.send_welcome_email(email, user.username)  # type: ignore
         except Exception as e:
             logger.error("Failed to send welcome email", user_id=user.id, error=str(e))
     
@@ -354,14 +406,20 @@ class AuthService:
             return
         
         # Generate reset token
-        token = self.email_service.generate_password_reset_token(user.email)
-        user.password_reset_token = token
-        user.password_reset_sent_at = datetime.utcnow()
+        token = self.email_service.generate_password_reset_token(email)
+        await self.db.execute(
+            update(User)
+            .where(User.id == user.id)
+            .values(
+                password_reset_token=token,
+                password_reset_sent_at=datetime.utcnow()
+            )
+        )
         await self.db.commit()
         
         await self.email_service.send_password_reset_email(
-            user.email, 
-            user.username, 
+            email, 
+            user.username,  # type: ignore
             token
         )
     
@@ -383,11 +441,17 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
         
-        # Update password
-        user.hashed_password = self.get_password_hash(new_password)
-        user.password_reset_token = None
-        user.password_reset_sent_at = None
-        
+        # Update password using update query
+        hashed_password = self.get_password_hash(new_password)
+        await self.db.execute(
+            update(User)
+            .where(User.id == user.id)
+            .values(
+                hashed_password=hashed_password,
+                password_reset_token=None,
+                password_reset_sent_at=None
+            )
+        )
         await self.db.commit()
     
     async def update_user_profile(self, user_id: int, profile_data: UserProfileUpdate) -> UserResponse:
@@ -400,13 +464,21 @@ class AuthService:
         if not user:
             raise ValueError("User not found")
         
+        # Build update values dict
+        update_values = {}
         if profile_data.display_name is not None:
-            user.display_name = profile_data.display_name
+            update_values["display_name"] = profile_data.display_name
         if profile_data.bio is not None:
-            user.bio = profile_data.bio
+            update_values["bio"] = profile_data.bio
         
-        await self.db.commit()
-        await self.db.refresh(user)
+        if update_values:
+            await self.db.execute(
+                update(User)
+                .where(User.id == user_id)
+                .values(**update_values)
+            )
+            await self.db.commit()
+            await self.db.refresh(user)
         
         return self._user_to_response(user)
     
