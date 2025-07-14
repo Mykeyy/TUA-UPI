@@ -150,7 +150,7 @@ async def get_signup_page():
             status_code=404
         )
 
-@router.get("/docs/auth/dashboard", response_class=HTMLResponse)
+@router.get("/auth/dashboard", response_class=HTMLResponse)
 async def get_dashboard_page():
     """
     Serve the dashboard page

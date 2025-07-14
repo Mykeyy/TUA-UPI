@@ -302,3 +302,41 @@ async def create_admin_user(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create admin user"
         )
+
+
+@router.get("/api-keys", response_model=list[APIKeyInfo])
+async def list_api_keys(
+    current_user: UserResponse = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """List all active API keys for the current user"""
+    try:
+        auth_service = AuthService(db)
+        api_keys = await auth_service.list_api_keys(current_user.id)
+        return api_keys
+    except Exception as e:
+        logger.error("Error listing API keys", user_id=current_user.id, error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to list API keys"
+        )
+
+
+@router.delete("/api-keys/{key_id}")
+async def revoke_specific_api_key(
+    key_id: int,
+    current_user: UserResponse = Depends(get_current_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """Revoke a specific API key"""
+    try:
+        auth_service = AuthService(db)
+        await auth_service.revoke_api_key(current_user.id, key_id)
+        logger.info("API key revoked", user_id=current_user.id, key_id=key_id)
+        return {"message": "API key revoked successfully"}
+    except Exception as e:
+        logger.error("Error revoking API key", user_id=current_user.id, key_id=key_id, error=str(e))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to revoke API key"
+        )

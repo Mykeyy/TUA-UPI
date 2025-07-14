@@ -26,6 +26,18 @@ class AudioService:
     async def get_asset_info(self, asset_id: int) -> AssetInfo:
         """Get information about an audio asset"""
         try:
+            # Check if Roblox cookie is configured
+            if not settings.ROBLOX_COOKIE:
+                logger.warning("Roblox cookie not configured - using fallback mode", asset_id=asset_id)
+                return AssetInfo(
+                    asset_id=asset_id,
+                    name=f"Audio Asset {asset_id}",
+                    creator="Unknown (No Auth)",
+                    description="Limited info - Roblox authentication not configured",
+                    created=None,
+                    updated=None
+                )
+            
             async with httpx.AsyncClient() as client:
                 # Use Roblox API to get asset info
                 url = f"https://assetdelivery.roblox.com/v1/asset/?id={asset_id}"
@@ -35,6 +47,21 @@ class AudioService:
                 }
                 
                 response = await client.get(url, headers=headers)
+                
+                # Handle 403 Forbidden specifically
+                if response.status_code == 403:
+                    logger.error("Roblox authentication failed - cookie may be invalid or expired", 
+                               asset_id=asset_id, status_code=response.status_code)
+                    # Return fallback info instead of failing
+                    return AssetInfo(
+                        asset_id=asset_id,
+                        name=f"Audio Asset {asset_id}",
+                        creator="Unknown (Auth Failed)",
+                        description="Cookie expired or invalid - please update ROBLOX_COOKIE in .env",
+                        created=None,
+                        updated=None
+                    )
+                
                 response.raise_for_status()
                 
                 # Try to get more detailed info from catalog API
@@ -61,7 +88,9 @@ class AudioService:
                     asset_id=asset_id,
                     name=f"Audio {asset_id}",
                     creator="Unknown",
-                    description="Information unavailable"
+                    description="Information unavailable",
+                    created=None,
+                    updated=None
                 )
                 
         except Exception as e:
@@ -83,6 +112,8 @@ class AudioService:
                     asset_id=asset_id,
                     asset_name=asset_info.name,
                     creator=asset_info.creator,
+                    file_size=None,
+                    download_url=None,
                     error_message="Could not get audio URL"
                 )
             
@@ -98,7 +129,8 @@ class AudioService:
                 asset_name=asset_info.name,
                 creator=asset_info.creator,
                 file_size=file_size,
-                download_url=download_url
+                download_url=download_url,
+                error_message=None
             )
             
         except Exception as e:
@@ -110,6 +142,8 @@ class AudioService:
                 asset_id=asset_id,
                 asset_name=f"Asset {asset_id}",
                 creator="Unknown",
+                file_size=None,
+                download_url=None,
                 error_message=str(e)
             )
     
@@ -199,11 +233,12 @@ class AudioService:
             result = await self.db.execute(select(User).where(User.id == user_id))
             user = result.scalar_one_or_none()
             if user:
-                user.total_downloads += 1
+                # Handle None values safely
+                user.total_downloads = (user.total_downloads or 0) + 1  # type: ignore
                 if success:
-                    user.successful_downloads += 1
+                    user.successful_downloads = (user.successful_downloads or 0) + 1  # type: ignore
                 else:
-                    user.failed_downloads += 1
+                    user.failed_downloads = (user.failed_downloads or 0) + 1  # type: ignore
             
             # Update or create asset stats
             result = await self.db.execute(select(AssetStats).where(AssetStats.asset_id == asset_id))
@@ -217,12 +252,13 @@ class AudioService:
                 )
                 self.db.add(asset_stats)
             
-            asset_stats.total_downloads += 1
-            asset_stats.last_downloaded = datetime.utcnow()
+            # Handle None values safely for asset stats too
+            asset_stats.total_downloads = (asset_stats.total_downloads or 0) + 1  # type: ignore
+            asset_stats.last_downloaded = datetime.utcnow()  # type: ignore
             if success:
-                asset_stats.successful_downloads += 1
+                asset_stats.successful_downloads = (asset_stats.successful_downloads or 0) + 1  # type: ignore
             else:
-                asset_stats.failed_downloads += 1
+                asset_stats.failed_downloads = (asset_stats.failed_downloads or 0) + 1  # type: ignore
             
             await self.db.commit()
             

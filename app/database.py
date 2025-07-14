@@ -59,7 +59,7 @@ async def create_tables():
     """Create all database tables"""
     async with engine.begin() as conn:
         # Import all models here to ensure they're registered
-        from app.models import user, audio_log
+        from app.models import user, audio_log, api_key
         
         logger.info("Creating database tables")
         await conn.run_sync(Base.metadata.create_all)

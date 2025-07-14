@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update
+from sqlalchemy.orm import selectinload
 from jose import JWTError, jwt
 from datetime import datetime
 import structlog
@@ -41,9 +42,11 @@ async def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    # Get user from database
+    # Get user from database with API keys relationship
     result = await db.execute(
-        select(User).where(User.username == token_data.username)
+        select(User)
+        .options(selectinload(User.api_keys))
+        .where(User.username == token_data.username)
     )
     user = result.scalar_one_or_none()
     

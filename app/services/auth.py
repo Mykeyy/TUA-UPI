@@ -10,6 +10,7 @@ import structlog
 import hashlib
 
 from app.models.user import User
+from app.models.api_key import APIKey
 from app.schemas.auth import (
     UserCreate, Token, APIKeyResponse, UserResponse, 
     APIKeyCreate, APIKeyInfo, ClientCredentials, ClientCredentialsResponse,
@@ -70,6 +71,22 @@ class AuthService:
     
     def _user_to_response(self, user: User) -> UserResponse:
         """Convert User model to UserResponse schema"""
+        # Check if user has any active API keys - handle lazy loading safely
+        has_api_key = False
+        latest_api_key = None
+        
+        try:
+            # Safely access api_keys relationship
+            if hasattr(user, 'api_keys') and user.api_keys is not None:
+                active_keys = [key for key in user.api_keys if key.is_active]  # type: ignore
+                if active_keys:
+                    has_api_key = True
+                    latest_api_key = max(active_keys, key=lambda k: k.created_at)  # type: ignore
+        except Exception:
+            # If there's any issue accessing the relationship, default to False
+            has_api_key = False
+            latest_api_key = None
+        
         # Create a dictionary with all user attributes plus calculated fields
         user_dict = {
             "id": user.id,
@@ -89,8 +106,8 @@ class AuthService:
             "created_at": user.created_at,
             "last_seen": user.last_seen,
             "last_login": user.last_login,
-            "has_api_key": bool(user.api_key),
-            "api_key_created_at": user.api_key_created_at,
+            "has_api_key": has_api_key,
+            "api_key_created_at": latest_api_key.created_at if latest_api_key else None,  # type: ignore
         }
         return UserResponse(**user_dict)
     
@@ -213,32 +230,42 @@ class AuthService:
     async def generate_api_key(self, user_id: int, name: Optional[str] = None) -> APIKeyResponse:
         """Generate a new API key for user"""
         result = await self.db.execute(
-            select(User).where(User.id == user_id)
+            select(User).options(selectinload(User.api_keys)).where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
         
         if not user:
             raise ValueError("User not found")
         
+        # Check API key limits
+        active_keys = [key for key in user.api_keys if key.is_active]
+        max_keys = 10 if user.is_admin else 3  # type: ignore
+        
+        if len(active_keys) >= max_keys:
+            user_type = "admin" if user.is_admin else "user"  # type: ignore
+            raise ValueError(f"Maximum API key limit reached. {user_type.title()} accounts can have up to {max_keys} active API keys.")
+        
         # Generate secure API key
         api_key = f"rapi_{secrets.token_urlsafe(32)}"
         now = datetime.utcnow()
         
-        # Use update query to modify the user
-        await self.db.execute(
-            update(User)
-            .where(User.id == user_id)
-            .values(
-                api_key=api_key,
-                api_key_created_at=now,
-                api_key_name=name
-            )
+        # Create new API key record
+        new_api_key = APIKey(
+            user_id=user_id,
+            key_hash=hashlib.sha256(api_key.encode()).hexdigest(),
+            key_preview=api_key[:8] + "...",
+            name=name or f"API Key {now.strftime('%Y-%m-%d %H:%M')}",
+            created_at=now,
+            is_active=True
         )
+        
+        self.db.add(new_api_key)
         await self.db.commit()
+        await self.db.refresh(new_api_key)
         
         return APIKeyResponse(
             api_key=api_key,
-            name=name,
+            name=name or f"API Key {now.strftime('%Y-%m-%d %H:%M')}",
             created_at=now,
             message="API key generated successfully"
         )
@@ -246,41 +273,46 @@ class AuthService:
     async def get_api_key_info(self, user_id: int) -> Optional[APIKeyInfo]:
         """Get API key information without exposing the full key"""
         result = await self.db.execute(
-            select(User).where(User.id == user_id)
+            select(User).options(selectinload(User.api_keys)).where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
         
-        if not user or not user.api_key:  # type: ignore
+        if not user or not user.api_keys:
             return None
         
+        # Get the most recently created active API key
+        active_keys = [key for key in user.api_keys if key.is_active]
+        if not active_keys:
+            return None
+        
+        latest_key = max(active_keys, key=lambda k: k.created_at)
+        
         return APIKeyInfo(
-            name=user.api_key_name,  # type: ignore
-            created_at=user.api_key_created_at,  # type: ignore
-            last_used=user.api_key_last_used,  # type: ignore
-            key_preview=user.api_key[:8] + "..."  # type: ignore
+            id=latest_key.id,  # type: ignore
+            name=latest_key.name,  # type: ignore
+            created_at=latest_key.created_at,  # type: ignore
+            last_used=latest_key.last_used,  # type: ignore
+            key_preview=latest_key.key_preview,  # type: ignore
+            usage_count=latest_key.usage_count  # type: ignore
         )
     
-    async def revoke_api_key(self, user_id: int):
-        """Revoke user's API key"""
-        result = await self.db.execute(
-            select(User).where(User.id == user_id)
-        )
-        user = result.scalar_one_or_none()
-        
-        if not user:
-            raise ValueError("User not found")
-        
-        # Use update query to clear API key fields
-        await self.db.execute(
-            update(User)
-            .where(User.id == user_id)
-            .values(
-                api_key=None,
-                api_key_created_at=None,
-                api_key_name=None,
-                api_key_last_used=None
+    async def revoke_api_key(self, user_id: int, key_id: Optional[int] = None):
+        """Revoke user's API key(s)"""
+        if key_id:
+            # Revoke specific API key
+            await self.db.execute(
+                update(APIKey)
+                .where(APIKey.user_id == user_id, APIKey.id == key_id)
+                .values(is_active=False, revoked_at=datetime.utcnow())
             )
-        )
+        else:
+            # Revoke all API keys for user
+            await self.db.execute(
+                update(APIKey)
+                .where(APIKey.user_id == user_id)
+                .values(is_active=False, revoked_at=datetime.utcnow())
+            )
+        
         await self.db.commit()
     
     async def generate_client_credentials(self, user_id: int, client_name: str) -> ClientCredentialsResponse:
@@ -504,3 +536,52 @@ class AuthService:
             print(f"   ✅ Admin user exists: {admin_user.username}")
         
         return admin_user
+    
+    async def list_api_keys(self, user_id: int) -> list[APIKeyInfo]:
+        """List all active API keys for a user"""
+        result = await self.db.execute(
+            select(APIKey)
+            .where(APIKey.user_id == user_id, APIKey.is_active == True)
+            .order_by(APIKey.created_at.desc())
+        )
+        api_keys = result.scalars().all()
+        
+        return [
+            APIKeyInfo(
+                id=key.id,  # type: ignore
+                name=key.name,  # type: ignore
+                created_at=key.created_at,  # type: ignore
+                last_used=key.last_used,  # type: ignore
+                key_preview=key.key_preview,  # type: ignore
+                usage_count=key.usage_count  # type: ignore
+            )
+            for key in api_keys
+        ]
+    
+    async def validate_api_key(self, api_key: str) -> Optional[User]:
+        """Validate an API key and return the associated user"""
+        # Hash the provided key to compare with stored hash
+        key_hash = hashlib.sha256(api_key.encode()).hexdigest()
+        
+        result = await self.db.execute(
+            select(APIKey)
+            .options(selectinload(APIKey.user))
+            .where(APIKey.key_hash == key_hash, APIKey.is_active == True)
+        )
+        api_key_record = result.scalar_one_or_none()
+        
+        if not api_key_record or not api_key_record.user:
+            return None
+        
+        # Update last used timestamp and usage count
+        await self.db.execute(
+            update(APIKey)
+            .where(APIKey.id == api_key_record.id)
+            .values(
+                last_used=datetime.utcnow(),
+                usage_count=APIKey.usage_count + 1
+            )
+        )
+        await self.db.commit()
+        
+        return api_key_record.user

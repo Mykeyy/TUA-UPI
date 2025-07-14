@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, Text, Float
 from sqlalchemy.sql import func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import datetime
 from typing import Optional
 
@@ -60,6 +60,9 @@ class User(Base):
     client_id = Column(String(100), nullable=True)  # Discord bot client ID
     client_secret = Column(String(255), nullable=True)  # Hashed client secret
     client_name = Column(String(100), nullable=True)  # Bot/app name
+    
+    # Relationships
+    api_keys = relationship("APIKey", back_populates="user", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"

@@ -142,8 +142,13 @@
         <!-- API Keys Management -->
         <div class="card">
             <div class="card-header">
-                <h2 class="card-title">API Keys</h2>
-                <button class="btn" onclick="createApiKey()">Create New Key</button>
+                <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                    <div>
+                        <h2 class="card-title">API Keys</h2>
+                        <span id="apiKeyCount" style="color: #888; font-size: 0.875rem;">Loading...</span>
+                    </div>
+                    <button class="btn" id="createKeyBtn" onclick="createApiKey()">Create New Key</button>
+                </div>
             </div>
             <div id="apiKeysList">
                 <div class="loading" style="display: flex; margin: 2rem 0;">
@@ -184,19 +189,107 @@
             </div>
             <div class="modal-body">
                 <div class="alert alert-success">
-                    <strong>Important:</strong> This is the only time you'll see your full API key. Make sure to copy it now!
+                    <strong>🎉 Important:</strong> This is the ONLY time you'll see your complete API key. Make sure to copy and save it securely!
                 </div>
                 <div class="api-key-display">
-                    <label class="form-label">Your New API Key:</label>
+                    <label class="form-label">Your New API Key (Copy Now!):</label>
                     <div class="api-key-value-full">
                         <span id="newApiKeyValue"></span>
                         <button class="copy-btn" onclick="copyApiKey()">📋 Copy</button>
                     </div>
                     <span id="copySuccess" class="copy-success" style="display: none;">✅ Copied to clipboard!</span>
                 </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(58, 192, 98, 0.1); border: 1px solid #3ac062; border-radius: 6px;">
+                    <strong style="color: #3ac062;">💡 Save this key in:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #ccc; font-size: 0.875rem;">
+                        <li>Your application's environment variables</li>
+                        <li>A secure password manager</li>
+                        <li>Your project's configuration file</li>
+                    </ul>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn" onclick="closeApiKeyDisplayModal()">I've Saved My Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Help Modal -->
+    <div id="apiKeyHelpModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🔑 Need Your Full API Key?</h3>
+                <span class="close" onclick="closeApiKeyHelpModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-error">
+                    <strong>🔒 Security Notice:</strong> For your protection, full API keys are only shown once when first created and cannot be recovered.
+                </div>
+                
+                <h4 style="color: #fff; margin: 1rem 0 0.5rem 0;">Options to get your full API key:</h4>
+                
+                <div style="margin: 1rem 0;">
+                    <strong>1. Check Your Saved Locations:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #ccc;">
+                        <li>Environment variables (.env file)</li>
+                        <li>Application configuration files</li>
+                        <li>Password manager</li>
+                        <li>Notes where you saved it initially</li>
+                    </ul>
+                </div>
+                
+                <div style="margin: 1rem 0;">
+                    <strong>2. Create a New API Key:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #ccc;">
+                        <li>Generate a new key with a descriptive name</li>
+                        <li>Copy the full key immediately when shown</li>
+                        <li>Save it securely in your preferred location</li>
+                        <li>Revoke the old key if needed</li>
+                    </ul>
+                </div>
+                
+                <div class="alert alert-success">
+                    <strong>💡 Best Practice:</strong> Always save your API keys in a secure location (like environment variables) immediately after creation.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeApiKeyHelpModal()">I Understand</button>
+                <button class="btn" onclick="closeApiKeyHelpModal(); createApiKey();">Create New Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key Revoke Confirmation Modal -->
+    <div id="revokeApiKeyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">🗑️ Revoke API Key</h3>
+                <span class="close" onclick="closeRevokeApiKeyModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-warning">
+                    <strong>⚠️ Warning:</strong> This action cannot be undone.
+                </div>
+                
+                <p style="color: #fff; margin: 1rem 0;">Are you sure you want to revoke your API key?</p>
+                
+                <div style="margin: 1rem 0;">
+                    <strong>What happens when you revoke:</strong>
+                    <ul style="margin: 0.5rem 0; padding-left: 1.5rem; color: #ccc;">
+                        <li>The API key will be immediately deactivated</li>
+                        <li>Any applications using this key will stop working</li>
+                        <li>You'll need to create a new key to continue using the API</li>
+                    </ul>
+                </div>
+                
+                <div style="margin: 1rem 0; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px;">
+                    <strong style="color: #fff;">Key to be revoked:</strong><br>
+                    <code id="revokeKeyPreview" style="color: #ffc107; font-family: monospace;"></code>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeRevokeApiKeyModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmRevokeApiKey()">Revoke API Key</button>
             </div>
         </div>
     </div>
@@ -250,63 +343,181 @@
 
         async function loadApiKeys() {
             try {
-                const response = await apiCall('/auth/api-key');
+                const response = await apiCall('/auth/api-keys');
                 const container = document.getElementById('apiKeysList');
+                const countElement = document.getElementById('apiKeyCount');
+                const createBtn = document.getElementById('createKeyBtn');
                 
                 if (response.ok) {
-                    const keyInfo = await response.json();
-                    console.log('API Key Info:', keyInfo);
+                    const apiKeys = await response.json();
+                    console.log('API Keys:', apiKeys);
                     
-                    if (!keyInfo || !keyInfo.key_preview) {
+                    // Get user info to determine if admin
+                    const userResponse = await apiCall('/auth/me');
+                    const userInfo = userResponse.ok ? await userResponse.json() : null;
+                    const isAdmin = userInfo?.is_admin || false;
+                    const maxKeys = isAdmin ? 10 : 3;
+                    const currentCount = apiKeys.length;
+                    
+                    // Update count display
+                    const userType = isAdmin ? "Admin" : "User";
+                    countElement.textContent = `${currentCount}/${maxKeys} API keys (${userType})`;
+                    countElement.style.color = currentCount >= maxKeys ? '#dc3545' : '#888';
+                    
+                    // Enable/disable create button based on limit
+                    createBtn.disabled = currentCount >= maxKeys;
+                    if (currentCount >= maxKeys) {
+                        createBtn.style.opacity = '0.5';
+                        createBtn.style.cursor = 'not-allowed';
+                        createBtn.title = `Maximum limit reached (${maxKeys} keys for ${userType.toLowerCase()}s)`;
+                    } else {
+                        createBtn.style.opacity = '1';
+                        createBtn.style.cursor = 'pointer';
+                        createBtn.title = '';
+                    }
+                    
+                    if (apiKeys.length === 0) {
                         container.innerHTML = '<div style="text-align: center; color: #888; padding: 2rem;">No API keys found. Create your first key to get started.</div>';
                         return;
                     }
-                    container.innerHTML = `
+                    
+                    // Display all API keys
+                    container.innerHTML = apiKeys.map(keyInfo => `
                         <div class="api-key-item">
                             <div class="api-key-header">
-                                <div class="api-key-name">${keyInfo.name || 'Default API Key'}</div>
+                                <div class="api-key-name">${keyInfo.name || 'API Key'}</div>
                                 <div class="api-key-status status-active">Active</div>
                             </div>
                             <div class="api-key-value">
                                 <span>${keyInfo.key_preview}***hidden***</span>
-                                <button class="copy-btn" onclick="copyToClipboard('${keyInfo.key_preview}***hidden***', true)">📋 Copy Preview</button>
                             </div>
                             <div style="font-size: 0.75rem; color: #888; margin: 0.5rem 0;">
                                 Created: ${new Date(keyInfo.created_at).toLocaleDateString()}
                                 ${keyInfo.last_used ? ` • Last used: ${new Date(keyInfo.last_used).toLocaleDateString()}` : ' • Never used'}
+                                • Used ${keyInfo.usage_count || 0} times
                             </div>
                             <div class="api-key-actions">
-                                <button class="btn btn-danger" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="deleteApiKey()">Revoke</button>
+                                <button class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.25rem 0.5rem; margin-right: 0.5rem;" onclick="showApiKeyHelp()">Need Full Key?</button>
+                                <button class="btn btn-danger" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" onclick="showRevokeConfirmation(${keyInfo.id}, '${keyInfo.name}')">Revoke</button>
                             </div>
                         </div>
-                    `;
+                    `).join('');
                 } else {
                     const errorText = await response.text();
                     console.error('API Error:', response.status, errorText);
                     container.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 2rem;">Error loading API keys: ${response.status} - ${errorText}</div>`;
+                    countElement.textContent = 'Error loading count';
+                    countElement.style.color = '#dc3545';
                 }
             } catch (error) { 
                 console.error('Load API Keys Error:', error);
                 const container = document.getElementById('apiKeysList');
+                const countElement = document.getElementById('apiKeyCount');
                 container.innerHTML = `<div style="text-align: center; color: #dc3545; padding: 2rem;">Error: ${error.message}</div>`;
+                countElement.textContent = 'Error loading count';
+                countElement.style.color = '#dc3545';
             }
         }
 
         async function createApiKey() {
-            const name = prompt('Enter a name for your API key:');
-            if (!name) return;
-            try {
-                const response = await apiCall('/auth/api-key', { method: 'POST', body: JSON.stringify({ name }) });
-                if (response.ok) { showAlert('API key created successfully!', 'success'); loadApiKeys(); }
-            } catch (error) { showAlert('Failed to create API key', 'error'); }
+            const createBtn = document.getElementById('createKeyBtn');
+            if (createBtn.disabled) {
+                alert('You have reached the maximum number of API keys for your account type.');
+                return;
+            }
+            document.getElementById('apiKeyModal').style.display = 'block';
+            document.getElementById('apiKeyName').focus();
         }
 
-        async function deleteApiKey() {
-            if (!confirm('Are you sure you want to revoke your API key?')) return;
+        function closeApiKeyModal() {
+            document.getElementById('apiKeyModal').style.display = 'none';
+            document.getElementById('apiKeyName').value = '';
+        }
+
+        function closeApiKeyDisplayModal() {
+            document.getElementById('apiKeyDisplayModal').style.display = 'none';
+            loadApiKeys(); // Refresh the API keys list
+        }
+
+        function showApiKeyHelp() {
+            document.getElementById('apiKeyHelpModal').style.display = 'block';
+        }
+
+        function closeApiKeyHelpModal() {
+            document.getElementById('apiKeyHelpModal').style.display = 'none';
+        }
+
+        async function createApiKeySubmit() {
+            const name = document.getElementById('apiKeyName').value.trim();
+            if (!name) {
+                showAlert('Please enter a name for your API key', 'error');
+                return;
+            }
+            
             try {
-                const response = await apiCall('/auth/api-key', { method: 'DELETE' });
-                if (response.ok) { showAlert('API key revoked successfully!', 'success'); loadApiKeys(); }
+                const response = await apiCall('/auth/api-key', { 
+                    method: 'POST', 
+                    body: JSON.stringify({ name }) 
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    // Close creation modal
+                    closeApiKeyModal();
+                    
+                    // Show the new API key
+                    document.getElementById('newApiKeyValue').textContent = result.api_key;
+                    document.getElementById('apiKeyDisplayModal').style.display = 'block';
+                    
+                    showAlert('API key created successfully!', 'success');
+                } else {
+                    const errorText = await response.text();
+                    showAlert(`Failed to create API key: ${errorText}`, 'error');
+                }
+            } catch (error) { 
+                showAlert('Failed to create API key', 'error');
+            }
+        }
+
+        async function copyApiKey() {
+            const apiKey = document.getElementById('newApiKeyValue').textContent;
+            try {
+                await navigator.clipboard.writeText(apiKey);
+                const successEl = document.getElementById('copySuccess');
+                successEl.style.display = 'inline';
+                setTimeout(() => successEl.style.display = 'none', 3000);
+            } catch (error) {
+                showAlert('Failed to copy API key', 'error');
+            }
+        }
+
+        async function deleteApiKey(keyId) {
+            try {
+                const endpoint = keyId ? `/auth/api-keys/${keyId}` : '/auth/api-key';
+                const response = await apiCall(endpoint, { method: 'DELETE' });
+                if (response.ok) { 
+                    showAlert('API key revoked successfully!', 'success'); 
+                    loadApiKeys(); 
+                    closeRevokeApiKeyModal();
+                }
             } catch (error) { showAlert('Failed to revoke API key', 'error'); }
+        }
+
+        function showRevokeConfirmation(keyId, keyName) {
+            document.getElementById('revokeKeyPreview').textContent = keyName || 'API Key';
+            document.getElementById('revokeApiKeyModal').style.display = 'block';
+            // Store the key ID for deletion
+            window.currentRevokeKeyId = keyId;
+        }
+
+        function closeRevokeApiKeyModal() {
+            document.getElementById('revokeApiKeyModal').style.display = 'none';
+        }
+
+        function confirmRevokeApiKey() {
+            if (window.currentRevokeKeyId) {
+                deleteApiKey(window.currentRevokeKeyId);
+            }
         }
 
         async function updateProfile() {
@@ -322,7 +533,9 @@
                 const textToCopy = isDirectText ? text : document.getElementById(text).textContent;
                 await navigator.clipboard.writeText(textToCopy);
                 showAlert('Copied to clipboard!', 'success');
-            } catch (error) { showAlert('Failed to copy', 'error'); }
+            } catch (error) { 
+                showAlert('Failed to copy', 'error'); 
+            }
         }
 
         function showAlert(message, type = 'error') {
@@ -330,9 +543,45 @@
             setTimeout(() => document.getElementById('alertContainer').innerHTML = '', 5000);
         }
 
-        function logout() { localStorage.removeItem('access_token'); window.location.href = '/docs/auth/login'; }
+        function logout() { 
+            localStorage.removeItem('access_token'); 
+            window.location.href = '/docs/auth/login'; 
+        }
 
-        async function init() { await loadUserData(); await loadApiKeys(); }
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const apiKeyModal = document.getElementById('apiKeyModal');
+            const apiKeyDisplayModal = document.getElementById('apiKeyDisplayModal');
+            const apiKeyHelpModal = document.getElementById('apiKeyHelpModal');
+            const revokeApiKeyModal = document.getElementById('revokeApiKeyModal');
+            
+            if (event.target === apiKeyModal) {
+                closeApiKeyModal();
+            }
+            if (event.target === apiKeyDisplayModal) {
+                closeApiKeyDisplayModal();
+            }
+            if (event.target === apiKeyHelpModal) {
+                closeApiKeyHelpModal();
+            }
+            if (event.target === revokeApiKeyModal) {
+                closeRevokeApiKeyModal();
+            }
+        }
+
+        // Handle Enter key in modal
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('apiKeyName').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    createApiKeySubmit();
+                }
+            });
+        });
+
+        async function init() { 
+            await loadUserData(); 
+            await loadApiKeys(); 
+        }
         init();
     </script>
 </body>

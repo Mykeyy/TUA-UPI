@@ -207,18 +207,22 @@ class APIKeyResponse(BaseModel):
 
 class APIKeyInfo(BaseModel):
     """Schema for API key information (without revealing the key)"""
+    id: int = Field(..., title="API Key ID")
     name: Optional[str] = Field(None, title="API Key Name")
     created_at: datetime = Field(..., title="Created At")
     last_used: Optional[datetime] = Field(None, title="Last Used")
     key_preview: str = Field(..., title="Key Preview", description="First 8 characters of the key")
+    usage_count: int = Field(0, title="Usage Count", description="Number of times this key has been used")
 
     model_config = {
         "json_schema_extra": {
             "example": {
+                "id": 1,
                 "name": "My Discord Bot",
                 "created_at": "2024-07-13T14:22:30",
                 "last_used": "2024-07-13T16:45:00",
-                "key_preview": "rapi_123"
+                "key_preview": "rapi_123",
+                "usage_count": 42
             }
         }
     }
